@@ -12,3 +12,7 @@ Route::get('/login', function () {
 Route::get('/newUser', function () {
     return view('nuevoUsuario');
 });
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+});
