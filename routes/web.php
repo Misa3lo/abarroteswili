@@ -20,3 +20,11 @@ Route::get('/dashboard', function () {
 Route::get('/punto_Deventa', function () {
     return view('puntoDeVenta');
 });
+
+Route::get('/gestionDeClientes', function () {
+    return view('gestionDeClientes');
+});
+
+Route::get('/gestion_inventario', function () {
+    return view('gestionInventario');
+});
