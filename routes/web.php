@@ -16,3 +16,7 @@ Route::get('/newUser', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 });
+
+Route::get('/punto_Deventa', function () {
+    return view('puntoDeVenta');
+});
