@@ -2,29 +2,77 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Rutas principales
 Route::get('/', function () {
-    return view('welcome');
-});
-Route::get('/login', function () {
-    return view('login');
+    return view('dashboard');
 });
 
-Route::get('/newUser', function () {
-    return view('nuevoUsuario');
+Route::get('/login', function () {
+    return view('iniciosesion');
 });
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 });
 
-Route::get('/punto_Deventa', function () {
+// Rutas de módulos CRUD
+Route::get('/clientes', function () {
+    return view('clientes.index');
+});
+
+Route::get('/abonos', function () {
+    return view('abonos.index');
+});
+
+Route::get('/creditos', function () {
+    return view('creditos.index');
+});
+
+Route::get('/departamentos', function () {
+    return view('departamentos.index');
+});
+
+Route::get('/metodos-pago', function () {
+    return view('metodospago.index');
+});
+
+Route::get('/personas', function () {
+    return view('personas.index');
+});
+
+Route::get('/productos', function () {
+    return view('productos.index');
+});
+
+Route::get('/surtidos', function () {
+    return view('surtidos.index');
+});
+
+Route::get('/tickets', function () {
+    return view('tickets.index');
+});
+
+Route::get('/usuarios', function () {
+    return view('usuarios.index');
+});
+
+Route::get('/ventas', function () {
+    return view('ventas.index');
+});
+
+// Rutas adicionales existentes
+Route::get('/punto-de-venta', function () {
     return view('puntoDeVenta');
 });
 
-Route::get('/gestionDeClientes', function () {
+Route::get('/gestion-clientes', function () {
     return view('gestionDeClientes');
 });
 
-Route::get('/gestion_inventario', function () {
+Route::get('/gestion-inventario', function () {
     return view('gestionInventario');
+});
+
+Route::get('/nuevo-usuario', function () {
+    return view('nuevoUsuario');
 });
