@@ -545,13 +545,33 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="/configuracion" class="nav-link">
-                <i>⚙️</i> Configuración
+            <a href="/punto-de-venta" class="nav-link">
+                <i>🛒</i> Punto de Venta
             </a>
         </li>
         <li class="nav-item">
-            <a href="/personas" class="nav-link">
-                <i>👨‍👩‍👧‍👦</i> Personas
+            <a href="/gestion-inventario" class="nav-link">
+                <i>📦</i> Inventario
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/gestion-clientes" class="nav-link">
+                <i>👥</i> Clientes
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/productos" class="nav-link">
+                <i>🏷️</i> Productos
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/ventas" class="nav-link">
+                <i>💰</i> Ventas
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/creditos" class="nav-link">
+                <i>💳</i> Créditos
             </a>
         </li>
         <li class="nav-item">
@@ -1062,7 +1082,7 @@
         } else {
             alert('Por favor complete todos los campos requeridos');
         }
-    });
+    }
 
     function limpiarFormulario() {
         document.getElementById('usuarioForm').reset();

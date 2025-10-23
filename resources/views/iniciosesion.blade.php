@@ -149,7 +149,7 @@
 
     <div class="login-form">
         <div class="error-message" id="errorMessage">
-            Usuario o contraseña incorrectos
+            Usuario no existe
         </div>
 
         <form id="loginForm">
@@ -178,14 +178,19 @@
 
         const usuario = document.getElementById('usuario').value;
         const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
 
-        // Simulación de login - En producción esto se conectaría al backend
-        if (usuario && password) {
-            // Redirección simulada - En producción sería window.location.href = '/dashboard'
-            alert('Login exitoso! Redirigiendo al dashboard...');
-            // window.location.href = '/dashboard';
+        // Usuarios válidos para la maquetación
+        const usuariosValidos = ['admin', 'empleado', 'supervisor'];
+
+        // No validamos contraseña, solo verificamos si el usuario existe
+        if (usuario && usuariosValidos.includes(usuario.toLowerCase())) {
+            // Redirigir al dashboard sin mostrar mensaje de éxito
+            window.location.href = '/dashboard';
         } else {
-            document.getElementById('errorMessage').style.display = 'block';
+            // Mostrar mensaje de usuario no existe
+            errorMessage.textContent = 'Usuario no existe';
+            errorMessage.style.display = 'block';
         }
     });
 
