@@ -76,6 +76,10 @@
             text-align: center;
         }
 
+        .nav-link.hidden {
+            display: none;
+        }
+
         /* Main Content */
         .main-content {
             margin-left: 250px;
@@ -90,7 +94,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
         }
 
@@ -198,6 +202,10 @@
             display: block;
         }
 
+        .action-btn.hidden {
+            display: none;
+        }
+
         /* Recent Activity */
         .recent-activity {
             background: white;
@@ -264,6 +272,16 @@
         .btn-primary:hover {
             background: #2980b9;
         }
+
+        /* Badge de rol */
+        .role-badge {
+            background: #f39c12;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -284,33 +302,38 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="/gestion-inventario" class="nav-link">
+            <a href="/gestion-inventario" class="nav-link" id="nav-inventario">
                 <i>📦</i> Inventario
             </a>
         </li>
         <li class="nav-item">
-            <a href="/gestion-clientes" class="nav-link">
+            <a href="/gestion-clientes" class="nav-link" id="nav-clientes">
                 <i>👥</i> Clientes
             </a>
         </li>
         <li class="nav-item">
-            <a href="/productos" class="nav-link">
+            <a href="/productos" class="nav-link" id="nav-productos">
                 <i>🏷️</i> Productos
             </a>
         </li>
         <li class="nav-item">
-            <a href="/ventas" class="nav-link">
+            <a href="/ventas" class="nav-link" id="nav-ventas">
                 <i>💰</i> Ventas
             </a>
         </li>
         <li class="nav-item">
-            <a href="/creditos" class="nav-link">
+            <a href="/creditos" class="nav-link" id="nav-creditos">
                 <i>💳</i> Créditos
             </a>
         </li>
         <li class="nav-item">
-            <a href="/usuarios" class="nav-link">
+            <a href="/usuarios" class="nav-link" id="nav-usuarios">
                 <i>👤</i> Usuarios
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/surtidos" class="nav-link" id="nav-surtidos">
+                <i>🚚</i> Surtidos
             </a>
         </li>
         <li class="nav-item">
@@ -327,8 +350,9 @@
     <header class="header">
         <h2>Dashboard Principal</h2>
         <div class="user-info">
-            <div class="user-avatar">AW</div>
-            <span>Administrador</span>
+            <div class="user-avatar" id="userAvatar">AW</div>
+            <span id="userName">Administrador</span>
+            <span class="role-badge" id="userRole">Administrador</span>
             <button class="btn btn-primary" onclick="location.href='/punto-de-venta'">
                 Nueva Venta
             </button>
@@ -349,7 +373,7 @@
             <div class="stat-number">23</div>
             <div class="stat-label">Productos con Stock Bajo</div>
         </div>
-        <div class="stat-card credits">
+        <div class="stat-card credits" id="stat-creditos">
             <div class="stat-number">$3,850</div>
             <div class="stat-label">Créditos Pendientes</div>
         </div>
@@ -363,23 +387,23 @@
                 <i>🛒</i>
                 Nueva Venta
             </a>
-            <a href="/productos" class="action-btn">
+            <a href="/productos" class="action-btn" id="action-registrar-producto">
                 <i>📝</i>
                 Registrar Producto
             </a>
-            <a href="/clientes" class="action-btn">
+            <a href="/clientes" class="action-btn" id="action-agregar-cliente">
                 <i>➕</i>
                 Agregar Cliente
             </a>
-            <a href="/surtidos" class="action-btn">
+            <a href="/surtidos" class="action-btn" id="action-surtido">
                 <i>📦</i>
                 Realizar Surtido
             </a>
-            <a href="/creditos" class="action-btn">
+            <a href="/creditos" class="action-btn" id="action-abono">
                 <i>💵</i>
                 Registrar Abono
             </a>
-            <a href="/gestion-inventario" class="action-btn">
+            <a href="/gestion-inventario" class="action-btn" id="action-reportes">
                 <i>📊</i>
                 Ver Reportes
             </a>
@@ -397,21 +421,21 @@
                     <div class="activity-time">Hace 5 minutos - $175.00</div>
                 </div>
             </li>
-            <li class="activity-item">
+            <li class="activity-item" id="activity-surtido">
                 <div class="activity-icon">📦</div>
                 <div class="activity-content">
                     <div class="activity-title">Surtido registrado - Arroz (50 unidades)</div>
                     <div class="activity-time">Hace 2 horas</div>
                 </div>
             </li>
-            <li class="activity-item">
+            <li class="activity-item" id="activity-abono">
                 <div class="activity-icon">💵</div>
                 <div class="activity-content">
                     <div class="activity-title">Abono registrado - Cliente Juan Pérez</div>
                     <div class="activity-time">Hace 3 horas - $50.00</div>
                 </div>
             </li>
-            <li class="activity-item">
+            <li class="activity-item" id="activity-cliente">
                 <div class="activity-icon">👥</div>
                 <div class="activity-content">
                     <div class="activity-title">Nuevo cliente registrado - María García</div>
@@ -423,13 +447,126 @@
 </main>
 
 <script>
-    // Navegación activa
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function() {
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
+    // Función para determinar el rol del usuario (simulado)
+    function getUserRole() {
+        // En una aplicación real, esto vendría del backend
+        // Por ahora, simulamos obteniendo de localStorage o usando un valor por defecto
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('rol') || localStorage.getItem('userRole') || 'empleado';
+    }
+
+    // Función para configurar la interfaz según el rol
+    function setupInterfaceByRole() {
+        const role = getUserRole();
+        const userNameElement = document.getElementById('userName');
+        const userRoleElement = document.getElementById('userRole');
+        const userAvatar = document.getElementById('userAvatar');
+
+        // Configurar información del usuario
+        if (role === 'admin') {
+            userNameElement.textContent = 'Administrador';
+            userRoleElement.textContent = 'Administrador';
+            userAvatar.textContent = 'A';
+        } else if (role === 'supervisor') {
+            userNameElement.textContent = 'Supervisor';
+            userRoleElement.textContent = 'Supervisor';
+            userAvatar.textContent = 'S';
+        } else {
+            userNameElement.textContent = 'Empleado';
+            userRoleElement.textContent = 'Empleado';
+            userAvatar.textContent = 'E';
+        }
+
+        // Configurar navegación según el rol
+        const navigationRules = {
+            'admin': {
+                show: ['inventario', 'clientes', 'productos', 'ventas', 'creditos', 'usuarios', 'surtidos']
+            },
+            'supervisor': {
+                show: ['inventario', 'clientes', 'productos', 'ventas', 'creditos', 'surtidos'],
+                hide: ['usuarios']
+            },
+            'empleado': {
+                show: ['ventas'],
+                hide: ['inventario', 'clientes', 'productos', 'creditos', 'usuarios', 'surtidos']
+            }
+        };
+
+        const rules = navigationRules[role] || navigationRules.empleado;
+
+        // Aplicar reglas de navegación
+        if (rules.show) {
+            rules.show.forEach(item => {
+                const element = document.getElementById(`nav-${item}`);
+                if (element) element.classList.remove('hidden');
+            });
+        }
+        if (rules.hide) {
+            rules.hide.forEach(item => {
+                const element = document.getElementById(`nav-${item}`);
+                if (element) element.classList.add('hidden');
+            });
+        }
+
+        // Configurar acciones rápidas según el rol
+        const actionRules = {
+            'admin': {
+                show: ['registrar-producto', 'agregar-cliente', 'surtido', 'abono', 'reportes']
+            },
+            'supervisor': {
+                show: ['registrar-producto', 'agregar-cliente', 'surtido', 'abono', 'reportes']
+            },
+            'empleado': {
+                hide: ['registrar-producto', 'agregar-cliente', 'surtido', 'abono', 'reportes']
+            }
+        };
+
+        const actionRuleset = actionRules[role] || actionRules.empleado;
+
+        if (actionRuleset.show) {
+            actionRuleset.show.forEach(action => {
+                const element = document.getElementById(`action-${action}`);
+                if (element) element.classList.remove('hidden');
+            });
+        }
+        if (actionRuleset.hide) {
+            actionRuleset.hide.forEach(action => {
+                const element = document.getElementById(`action-${action}`);
+                if (element) element.classList.add('hidden');
+            });
+        }
+
+        // Ocultar estadísticas de créditos para empleados
+        if (role === 'empleado') {
+            document.getElementById('stat-creditos').style.display = 'none';
+        }
+
+        // Ocultar actividades según el rol
+        if (role === 'empleado') {
+            document.getElementById('activity-surtido').style.display = 'none';
+            document.getElementById('activity-abono').style.display = 'none';
+            document.getElementById('activity-cliente').style.display = 'none';
+        }
+    }
+
+    // Inicializar la interfaz cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        setupInterfaceByRole();
+
+        // Navegación activa
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
         });
     });
+
+    // Para testing: permitir cambiar rol desde la URL ?rol=admin|supervisor|empleado
+    function changeRole(newRole) {
+        localStorage.setItem('userRole', newRole);
+        window.location.href = '/dashboard?rol=' + newRole;
+    }
 </script>
 </body>
 </html>

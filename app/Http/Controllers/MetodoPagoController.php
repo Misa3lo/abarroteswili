@@ -1,63 +1,110 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Models;
 
-use App\Models\MetodoPago;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class MetodoPagoController extends Controller
+class MetodoPago extends Model
 {
-    public function index()
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'metodo_pago';
+    protected $primaryKey = 'id';
+
+    protected $fillable = [
+        'descripcion'
+    ];
+
+    protected $dates = ['deleted_at'];
+
+    // Relación con Tickets
+    public function tickets()
     {
-        $metodosPago = MetodoPago::all();
-        return view('metodos_pago.index', compact('metodosPago'));
+        return $this->hasMany(Ticket::class, 'metodo_pago_id');
     }
 
-    public function create()
+    // Accesor para verificar si es efectivo
+    public function getEsEfectivoAttribute()
     {
-        return view('metodos_pago.create');
+        return $this->id == 1; // ID 1 = Efectivo en tu BD
     }
 
-    public function store(Request $request)
+    // Accesor para verificar si es crédito
+    public function getEsCreditoAttribute()
     {
-        $request->validate([
-            'descripcion' => 'required|string|max:50|unique:metodo_pago'
-        ]);
-
-        MetodoPago::create([
-            "descripcion" => $request->descripcion
-        ]);
-
-        return redirect()->route('metodos-pago.index')->with('success', 'Método de pago creado correctamente');
+        return $this->id == 2; // ID 2 = Crédito en tu BD
     }
 
-    public function show(MetodoPago $metodoPago)
+    // Accesor para la descripción en mayúsculas
+    public function getDescripcionMayusculaAttribute()
     {
-        $metodoPago->load('tickets');
-        return view('metodos_pago.show', compact('metodoPago'));
+        return strtoupper($this->descripcion);
     }
 
-    public function edit(MetodoPago $metodoPago)
+    // Scope para método activos
+    public function scopeActivos($query)
     {
-        return view('metodos_pago.edit', compact('metodoPago'));
+        return $query->whereNull('deleted_at');
     }
 
-    public function update(Request $request, MetodoPago $metodoPago)
+    // Scope para búsqueda por descripción
+    public function scopePorDescripcion($query, $descripcion)
     {
-        $request->validate([
-            'descripcion' => 'required|string|max:50|unique:metodo_pago,descripcion,' . $metodoPago->id
-        ]);
-
-        $metodoPago->update([
-            "descripcion" => $request->descripcion
-        ]);
-
-        return redirect()->route('metodos-pago.index')->with('success', 'Método de pago actualizado correctamente');
+        return $query->where('descripcion', 'like', "%{$descripcion}%");
     }
 
-    public function destroy(MetodoPago $metodoPago)
+    // Método para contar tickets por este método de pago
+    public function getTotalTicketsAttribute()
     {
-        $metodoPago->delete();
-        return redirect()->route('metodos-pago.index')->with('success', 'Método de pago eliminado correctamente');
+        return $this->tickets()->count();
+    }
+
+    // Método para calcular el monto total por este método de pago
+    public function getMontoTotalAttribute()
+    {
+        return $this->tickets()->sum('total');
+    }
+
+    // Método para obtener estadísticas de uso
+    public function getEstadisticasUsoAttribute()
+    {
+        $totalTicketsGlobal = Ticket::count();
+        $totalTicketsMetodo = $this->total_tickets;
+
+        if ($totalTicketsGlobal > 0) {
+            $porcentaje = ($totalTicketsMetodo / $totalTicketsGlobal) * 100;
+        } else {
+            $porcentaje = 0;
+        }
+
+        return [
+            'total_tickets' => $totalTicketsMetodo,
+            'monto_total' => $this->monto_total,
+            'porcentaje_uso' => round($porcentaje, 2)
+        ];
+    }
+
+    // Método estático para obtener método de pago por defecto (Efectivo)
+    public static function obtenerEfectivo()
+    {
+        return self::find(1);
+    }
+
+    // Método estático para obtener método de pago por crédito
+    public static function obtenerCredito()
+    {
+        return self::find(2);
+    }
+
+    // Método para obtener tickets recientes de este método
+    public function ticketsRecientes($limite = 10)
+    {
+        return $this->tickets()
+            ->with(['cliente.persona', 'usuario.persona'])
+            ->orderBy('fecha_hora', 'desc')
+            ->limit($limite)
+            ->get();
     }
 }

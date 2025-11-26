@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\AbonoController;
+// Agregaremos más controladores según los vayamos creando
 
 // Rutas principales
 Route::get('/', function () {
@@ -15,7 +18,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 });
 
-// Rutas de módulos CRUD
+// Rutas de módulos CRUD (Vistas)
 Route::get('/clientes', function () {
     return view('clientes.index');
 });
