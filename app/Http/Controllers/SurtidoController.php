@@ -28,20 +28,25 @@ class SurtidoController extends Controller
             'cantidad' => 'required|numeric|min:0.01'
         ]);
 
-        // Crear el surtido
-        $surtido = Surtido::create([
-            "producto_id" => $request->producto_id,
-            "precio_entrada" => $request->precio_entrada,
-            "cantidad" => $request->cantidad
-        ]);
+        try {
+            // Obtener el nombre del producto (ya que el procedimiento lo requiere)
+            $producto = DB::table('productos')->where('id', $request->producto_id)->value('nombre');
 
-        // Actualizar existencias del producto
-        $producto = Producto::find($request->producto_id);
-        $producto->existencias += $request->cantidad;
-        $producto->precio_compra = $request->precio_entrada; // Actualizar precio de compra
-        $producto->save();
+            // Llamar al procedimiento almacenado
+            $resultado = DB::select('CALL registrar_surtido(?, ?, ?)', [
+                $producto,
+                $request->cantidad,
+                $request->precio_entrada
+            ]);
 
-        return redirect()->route('surtidos.index')->with('success', 'Surtido registrado correctamente');
+            // Mostrar el mensaje devuelto desde el procedimiento
+            $mensaje = $resultado[0]->resultado ?? 'Sin respuesta';
+
+            return redirect()->route('surtidos.index')->with('success', $mensaje);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function show(Surtido $surtido)

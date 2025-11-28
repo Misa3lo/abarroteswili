@@ -643,6 +643,12 @@
             </div>
         </form>
     </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-primary">📦 Lista de Surtidos</h4>
+        <a href="{{ route('surtidos.procedimiento') }}" class="btn btn-success shadow-sm px-4 py-2 rounded-pill">
+            ⚙️ Registrar por Procedimiento
+        </a>
+    </div>
 
     <!-- Historial de Surtidos -->
     <div id="lista-tab" class="table-container" style="display: none;">

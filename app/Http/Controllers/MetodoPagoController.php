@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MetodoPago;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class MetodoPagoController extends Controller
 {
     public function index()
     {
-        $metodosPago = MetodoPago::all();
-        return view('metodos_pago.index', compact('metodosPago'));
+        $metodosPago = DB::table('metodo_pago')->get();
+        return view('metodo_pago.index', compact('metodosPago'));
     }
 
     public function create()
     {
-        return view('metodos_pago.create');
+        return view('metodo_pago.create');
     }
 
     public function store(Request $request)
@@ -24,40 +24,41 @@ class MetodoPagoController extends Controller
             'descripcion' => 'required|string|max:50|unique:metodo_pago'
         ]);
 
-        MetodoPago::create([
-            "descripcion" => $request->descripcion
+        DB::table('metodo_pago')->insert([
+            'descripcion' => $request->descripcion
         ]);
 
         return redirect()->route('metodos-pago.index')->with('success', 'Método de pago creado correctamente');
     }
 
-    public function show(MetodoPago $metodoPago)
+    public function show($id)
     {
-        $metodoPago->load('tickets');
-        return view('metodos_pago.show', compact('metodoPago'));
+        $metodoPago = DB::table('metodo_pago')->where('id', $id)->first();
+        return view('metodo_pago.show', compact('metodoPago'));
     }
 
-    public function edit(MetodoPago $metodoPago)
+    public function edit($id)
     {
-        return view('metodos_pago.edit', compact('metodoPago'));
+        $metodoPago = DB::table('metodo_pago')->where('id', $id)->first();
+        return view('metodo_pago.edit', compact('metodoPago'));
     }
 
-    public function update(Request $request, MetodoPago $metodoPago)
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'descripcion' => 'required|string|max:50|unique:metodo_pago,descripcion,' . $metodoPago->id
+            'descripcion' => 'required|string|max:50|unique:metodo_pago,descripcion,' . $id
         ]);
 
-        $metodoPago->update([
-            "descripcion" => $request->descripcion
-        ]);
+        DB::table('metodo_pago')
+            ->where('id', $id)
+            ->update(['descripcion' => $request->descripcion]);
 
         return redirect()->route('metodos-pago.index')->with('success', 'Método de pago actualizado correctamente');
     }
 
-    public function destroy(MetodoPago $metodoPago)
+    public function destroy($id)
     {
-        $metodoPago->delete();
+        DB::table('metodo_pago')->where('id', $id)->delete();
         return redirect()->route('metodos-pago.index')->with('success', 'Método de pago eliminado correctamente');
     }
 }

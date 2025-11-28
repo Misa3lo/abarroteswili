@@ -2,24 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MetodoPago extends Model
 {
-    use HasFactory, SoftDeletes;
-
     protected $table = 'metodo_pago';
+    protected $primaryKey = 'id';
     protected $fillable = ['descripcion'];
+    public $timestamps = false;
 
-    public function tickets()
-    {
-        return $this->hasMany(Ticket::class, 'metodo_pago_id');
-    }
-
-    public function getCantidadTicketsAttribute()
-    {
-        return $this->tickets->count();
-    }
+    // No usar SoftDeletes si la tabla no tiene deleted_at
 }
