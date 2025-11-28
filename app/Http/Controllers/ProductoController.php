@@ -10,8 +10,14 @@ class ProductoController extends Controller
 {
     public function index()
     {
+        // Obtenemos productos con su relación de departamento
         $productos = Producto::with('departamento')->get();
-        return view('productos.index', compact('productos'));
+        
+        // TAMBIÉN obtenemos los departamentos para poder llenar el select del formulario
+        $departamentos = Departamento::all(); 
+
+        // Retornamos la vista (que crearemos en el paso 3) pasando ambas variables
+        return view('productos.index', compact('productos', 'departamentos'));
     }
 
     public function create()
