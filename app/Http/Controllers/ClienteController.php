@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
+    // Muestra el listado de clientes
     public function index()
     {
         // Cargar clientes con su información de persona
@@ -15,83 +16,73 @@ class ClienteController extends Controller
         return view('clientes.index', compact('clientes'));
     }
 
+    // Muestra el formulario para ASOCIAR una persona como nuevo cliente
     public function create()
     {
-        return view('clientes.create');
+        // **Lógica Corregida:**
+        // Carga personas que NO tienen un registro asociado en la tabla 'clientes'
+        $personas = Persona::whereDoesntHave('cliente')
+            ->orderBy('apaterno')
+            ->orderBy('nombre')
+            ->get();
+
+        return view('clientes.create', compact('personas'));
     }
 
+    // Almacena el nuevo cliente usando una persona existente
     public function store(Request $request)
     {
+        // **Lógica Corregida:**
+        // Solo valida los campos del rol de cliente (persona_id y limite_credito)
         $request->validate([
-            'nombre' => 'required|string|max:100',
-            'apaterno' => 'required|string|max:100',
-            'amaterno' => 'nullable|string|max:100',
-            'telefono' => 'nullable|string|max:15',
-            'direccion' => 'nullable|string|max:255',
+            // El persona_id debe existir y no debe tener ya un registro en la tabla clientes
+            'persona_id' => 'required|exists:personas,id|unique:clientes,persona_id',
             'limite_credito' => 'required|numeric|min:0'
-        ]);
-
-        // Crear primero la persona
-        $persona = Persona::create([
-            'nombre' => $request->nombre,
-            'apaterno' => $request->apaterno,
-            'amaterno' => $request->amaterno,
-            'telefono' => $request->telefono,
-            'direccion' => $request->direccion
         ]);
 
         // Crear el cliente asociado a la persona
         Cliente::create([
-            'persona_id' => $persona->id,
+            'persona_id' => $request->persona_id,
             'limite_credito' => $request->limite_credito
         ]);
 
         return redirect()->route('clientes.index')
-            ->with('success', 'Cliente creado correctamente');
+            ->with('success', 'Cliente registrado y rol asignado correctamente');
     }
 
+    // Muestra un cliente específico
     public function show(Cliente $cliente)
     {
-        // Cargar relaciones para mostrar
         $cliente->load('persona', 'creditos.abonos');
         return view('clientes.show', compact('cliente'));
     }
 
+    // Muestra el formulario para editar el límite de crédito
     public function edit(Cliente $cliente)
     {
         $cliente->load('persona');
         return view('clientes.edit', compact('cliente'));
     }
 
+    // Actualiza solo el límite de crédito del cliente
     public function update(Request $request, Cliente $cliente)
     {
+        // **Lógica Corregida:**
+        // Solo valida y actualiza el campo específico de la tabla clientes
         $request->validate([
-            'nombre' => 'required|string|max:100',
-            'apaterno' => 'required|string|max:100',
-            'amaterno' => 'nullable|string|max:100',
-            'telefono' => 'nullable|string|max:15',
-            'direccion' => 'nullable|string|max:255',
             'limite_credito' => 'required|numeric|min:0'
         ]);
 
-        // Actualizar la persona
-        $cliente->persona->update([
-            'nombre' => $request->nombre,
-            'apaterno' => $request->apaterno,
-            'amaterno' => $request->amaterno,
-            'telefono' => $request->telefono,
-            'direccion' => $request->direccion
-        ]);
-
-        // Actualizar el cliente
+        // Actualizar solo el cliente (ya no se actualiza la persona)
         $cliente->update([
             'limite_credito' => $request->limite_credito
         ]);
 
         return redirect()->route('clientes.index')
-            ->with('success', 'Cliente actualizado correctamente');
+            ->with('success', 'Límite de crédito actualizado correctamente');
     }
 
+    // Elimina un cliente (soft delete)
     public function destroy(Cliente $cliente)
     {
         // Soft delete (usando deleted_at)

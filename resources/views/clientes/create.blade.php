@@ -1,72 +1,69 @@
 @extends("layouts.app")
-@section("content")
-    <div class="container-fluid py-4">
-        <!-- Encabezado -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ url('/clientes') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-1"></i> Volver
-                    </a>
-                    <h1 class="h2 text-primary fw-bold">
-                        <i class="fas fa-user-plus me-2"></i>Registrar Nuevo Cliente
-                    </h1>
-                    <div></div> <!-- Espacio para alinear -->
-                </div>
-                <hr class="border-primary opacity-50">
-            </div>
-        </div>
 
-        <!-- Formulario -->
+@section("content")
+    <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-primary text-white py-3">
-                        <h5 class="mb-0">
-                            <i class="fas fa-user-circle me-2"></i>Información del Cliente
-                        </h5>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Registrar Nuevo Cliente</h4>
                     </div>
                     <div class="card-body p-4">
-                        <form action="{{route('clientes.store')}}" method="POST">
+                        <form action="{{ route('clientes.store') }}" method="POST" class="needs-validation" novalidate>
                             @csrf
 
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="nombre" class="form-label">Nombre *</label>
-                                    <input type="text" class="form-control" id="nombre" name="nombre" required>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="apaterno" class="form-label">Apellido Paterno *</label>
-                                    <input type="text" class="form-control" id="apaterno" name="apaterno" required>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="amaterno" class="form-label">Apellido Materno</label>
-                                    <input type="text" class="form-control" id="amaterno" name="amaterno">
+                            <h5 class="text-success mb-3 border-bottom pb-2"><i class="fas fa-search me-2"></i>Seleccionar Persona Existente</h5>
+
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <label for="persona_id" class="form-label fw-bold">Persona a Registrar como Cliente <span class="text-danger">*</span></label>
+
+                                    @if($personas->isEmpty())
+                                        <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <div>
+                                                No hay personas disponibles para registrar como clientes.
+                                                <a href="{{ route('personas.create') }}" class="alert-link fw-bold">Regístrela aquí primero.</a>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="persona_id" value="">
+                                    @else
+                                        <select class="form-select @error('persona_id') is-invalid @enderror"
+                                                name="persona_id" id="persona_id" required>
+                                            <option value="" disabled selected>-- Seleccione una Persona --</option>
+                                            @foreach($personas as $persona)
+                                                <option value="{{ $persona->id }}"
+                                                    {{ old('persona_id') == $persona->id ? 'selected' : '' }}>
+                                                    {{ $persona->nombre_completo }} (Tel: {{ $persona->telefono ?? 'N/A' }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('persona_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    @endif
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="telefono" class="form-label">Teléfono</label>
-                                    <input type="tel" class="form-control" id="telefono" name="telefono">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="limite_credito" class="form-label">Límite de Crédito *</label>
-                                    <input type="number" class="form-control" id="limite_credito" name="limite_credito" step="0.01" min="0" value="0.00" required>
+                            <h5 class="text-success mb-3 border-bottom pb-2 mt-4"><i class="fas fa-wallet me-2"></i>Configuración de Crédito</h5>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label for="limite_credito" class="form-label fw-bold">Límite de Crédito ($) <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" min="0" class="form-control @error('limite_credito') is-invalid @enderror"
+                                               name="limite_credito" value="{{ old('limite_credito', 0) }}" required>
+                                    </div>
+                                    <small class="text-muted">Monto máximo que puede adeudar el cliente.</small>
+                                    @error('limite_credito') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="direccion" class="form-label">Dirección</label>
-                                <textarea class="form-control" id="direccion" name="direccion" rows="3"></textarea>
-                            </div>
-
-                            <div class="d-flex justify-content-end gap-3 mt-4">
-                                <a href="{{route('clientes.index')}}" class="btn btn-secondary">
-                                    <i class="fas fa-times me-1"></i> Cancelar
-                                </a>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-save me-1"></i> Guardar Cliente
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{{ route('clientes.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Cancelar</a>
+                                <button type="submit" class="btn btn-success" {{ $personas->isEmpty() ? 'disabled' : '' }}>
+                                    <i class="fas fa-save me-2"></i>Asignar Rol de Cliente
                                 </button>
                             </div>
                         </form>
