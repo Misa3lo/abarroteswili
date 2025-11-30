@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable; // <-- ¡CLAVE!
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Usuario extends Authenticatable
 {
@@ -16,14 +16,12 @@ class Usuario extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
     // Indica a Laravel que el campo de nombre de usuario es 'usuario'
-    // SIN ESTO, LARAVEL BUSCA EL CAMPO 'email'.
     public function getAuthIdentifierName()
     {
         return 'usuario';
     }
-
-    // ... (otras propiedades)
 
     protected $fillable = [
         'persona_id',
@@ -32,5 +30,16 @@ class Usuario extends Authenticatable
         'rol',
     ];
 
-
+    // ********** ¡AÑADE ESTE MÉTODO! **********
+    /**
+     * Define la relación de Usuario con Persona (Un Usuario pertenece a una Persona).
+     */
+    public function persona()
+    {
+        return $this->belongsTo(Persona::class, 'persona_id');
+    }
+    // *******************************************
 }
+
+// Asegúrate de que Persona esté importada si la tienes en un namespace diferente
+// Aunque generalmente no es necesario si está en el mismo App\Models

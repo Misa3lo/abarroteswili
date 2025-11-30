@@ -7,7 +7,7 @@
         <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px;">
             <div class="card-header bg-primary text-white text-center">
                 <i class="fas fa-shopping-basket fa-2x mb-2"></i>
-                <h4 class="mb-0">Acceso a Wili POS</h4>
+                <h4 class="mb-0">Acceso a Abarrotes Wili</h4>
             </div>
             <div class="card-body">
                 @if(session('error'))
