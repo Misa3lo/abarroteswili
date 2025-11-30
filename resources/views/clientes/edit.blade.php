@@ -1,72 +1,79 @@
-@extends("layouts.app")
+@extends('layouts.app')
 
-@section("content")
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-warning text-dark">
-                        <h4 class="mb-0"><i class="fas fa-user-edit me-2"></i>Editar Cliente</h4>
+@section('title', 'Editar Cliente')
+
+@section('content')
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <i class="fas fa-edit me-2"></i> Editando Cliente: **{{ $cliente->persona->nombre }} {{ $cliente->persona->apaterno }}**
+        </div>
+        <div class="card-body">
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('clientes.update', $cliente->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                <h5 class="mb-3 text-primary"><i class="fas fa-info-circle"></i> Datos Personales</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="nombre" class="form-label">Nombre(s) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nombre" name="nombre"
+                               value="{{ old('nombre', $cliente->persona->nombre) }}" required>
                     </div>
-                    <div class="card-body p-4">
-                        <form action="{{ route('clientes.update', $cliente->id) }}" method="POST" class="needs-validation" novalidate>
-                            @csrf
-                            @method('PUT')
-
-                            <h5 class="text-warning mb-3 border-bottom pb-2"><i class="fas fa-address-card me-2"></i>Datos Personales</h5>
-
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label for="nombre" class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('nombre') is-invalid @enderror" name="nombre" value="{{ old('nombre', $cliente->persona->nombre) }}" required>
-                                    @error('nombre') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="apaterno" class="form-label fw-bold">Apellido Paterno <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('apaterno') is-invalid @enderror" name="apaterno" value="{{ old('apaterno', $cliente->persona->apaterno) }}" required>
-                                    @error('apaterno') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="amaterno" class="form-label fw-bold">Apellido Materno</label>
-                                    <input type="text" class="form-control @error('amaterno') is-invalid @enderror" name="amaterno" value="{{ old('amaterno', $cliente->persona->amaterno) }}">
-                                    @error('amaterno') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="telefono" class="form-label fw-bold">Teléfono</label>
-                                    <input type="text" class="form-control @error('telefono') is-invalid @enderror" name="telefono" value="{{ old('telefono', $cliente->persona->telefono) }}">
-                                    @error('telefono') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="direccion" class="form-label fw-bold">Dirección</label>
-                                    <input type="text" class="form-control @error('direccion') is-invalid @enderror" name="direccion" value="{{ old('direccion', $cliente->persona->direccion) }}">
-                                    @error('direccion') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-                            </div>
-
-                            <h5 class="text-warning mb-3 border-bottom pb-2 mt-4"><i class="fas fa-wallet me-2"></i>Configuración de Crédito</h5>
-
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <label for="limite_credito" class="form-label fw-bold">Límite de Crédito ($) <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" step="0.01" class="form-control @error('limite_credito') is-invalid @enderror" name="limite_credito" value="{{ old('limite_credito', $cliente->limite_credito) }}" required>
-                                    </div>
-                                    @error('limite_credito') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between">
-                                <a href="{{ route('clientes.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Cancelar</a>
-                                <button type="submit" class="btn btn-warning"><i class="fas fa-save me-2"></i>Actualizar Cliente</button>
-                            </div>
-                        </form>
+                    <div class="col-md-4 mb-3">
+                        <label for="apaterno" class="form-label">Apellido Paterno <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="apaterno" name="apaterno"
+                               value="{{ old('apaterno', $cliente->persona->apaterno) }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="amaterno" class="form-label">Apellido Materno <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="amaterno" name="amaterno"
+                               value="{{ old('amaterno', $cliente->persona->amaterno) }}" required>
                     </div>
                 </div>
-            </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="telefono" name="telefono"
+                               value="{{ old('telefono', $cliente->persona->telefono) }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="direccion" name="direccion"
+                               value="{{ old('direccion', $cliente->persona->direccion) }}">
+                    </div>
+                </div>
+
+                <h5 class="mt-4 mb-3 text-primary"><i class="fas fa-credit-card"></i> Datos de Cliente</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="limite_credito" class="form-label">Límite de Crédito ($) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="limite_credito" name="limite_credito"
+                               value="{{ old('limite_credito', $cliente->limite_credito) }}" required>
+                    </div>
+                </div>
+
+                <hr>
+                <div class="d-flex justify-content-end">
+                    <a href="{{ route('clientes.index') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">
+                        <i class="fas fa-sync-alt"></i> Actualizar Cliente
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

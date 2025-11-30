@@ -1,81 +1,75 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\DashboardController;
+// Importar todos los controladores que usarás
 use App\Http\Controllers\AbonoController;
-// Agregaremos más controladores según los vayamos creando
+use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\CreditoController;
+use App\Http\Controllers\DepartamentoController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MetodoPagoController;
+use App\Http\Controllers\PersonaController;
+use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\SurtidoController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\UsuarioController;
 
-// Rutas principales
+
+// --- RUTAS DE AUTENTICACIÓN (Públicas) ---
+
+// Redirección de la raíz al login
 Route::get('/', function () {
-    return view('dashboard');
-});
+    return redirect()->route('login');
+})->name('home');
 
-Route::get('/login', function () {
-    return view('iniciosesion');
-});
+// Formulario de login
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+// Procesamiento del login
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+// Logout
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-});
 
-// Rutas de módulos CRUD (Vistas)
-Route::get('/clientes', function () {
-    return view('clientes.index');
-});
+// --- GRUPO DE RUTAS PROTEGIDAS (Requieren Iniciar Sesión) ---
+// Todo lo que está dentro de este grupo requerirá una sesión activa.
+Route::middleware(['auth'])->group(function () {
 
-Route::get('/abonos', function () {
-    return view('abonos.index');
-});
+    // 1. Dashboard (Punto de entrada principal)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::get('/creditos', function () {
-    return view('creditos.index');
-});
+    // 2. Punto de Venta (Generalmente accesible para todos)
+    Route::get('/punto-de-venta', [TicketController::class, 'create'])->name('puntoDeVenta');
+    Route::resource('tickets', TicketController::class)->only(['index', 'store', 'show', 'destroy']);
 
-Route::get('/departamentos', function () {
-    return view('departamentos.index');
-});
 
-Route::get('/metodos-pago', function () {
-    return view('metodospago.index');
-});
+    // 3. Rutas CRUD generales
+    Route::resource('abonos', AbonoController::class)->except(['show']);
+    Route::resource('clientes', ClienteController::class);
+    Route::resource('creditos', CreditoController::class)->except(['create', 'store']);
+    Route::resource('departamentos', DepartamentoController::class);
+    Route::resource('metodos-pago', MetodoPagoController::class);
+    Route::resource('personas', PersonaController::class);
+    Route::resource('productos', ProductoController::class);
+    Route::resource('surtidos', SurtidoController::class)->except(['update', 'destroy']);
 
-Route::get('/personas', function () {
-    return view('personas.index');
-});
+    // Búsqueda de Personas
+    Route::get('personas/search', [PersonaController::class, 'search'])->name('personas.search');
 
-Route::get('/productos', function () {
-    return view('productos.index');
-});
 
-Route::get('/surtidos', function () {
-    return view('surtidos.index');
-});
+    // 4. Rutas de CRÉDITOS
+    Route::prefix('creditos')->group(function () {
+        Route::get('/', [CreditoController::class, 'index'])->name('creditos.index');
+        Route::get('/{credito}', [CreditoController::class, 'show'])->name('creditos.show');
+        Route::post('/{credito}/abono', [CreditoController::class, 'storeAbono'])->name('creditos.storeAbono');
+    });
 
-Route::get('/tickets', function () {
-    return view('tickets.index');
-});
 
-Route::get('/usuarios', function () {
-    return view('usuarios.index');
-});
+    // 5. Rutas de Administrador (Doble protección: 'auth' + 'can:administrador')
+    Route::middleware(['can:administrador'])->group(function () {
+        Route::resource('usuarios', UsuarioController::class);
+        Route::view('/gestion-clientes', 'gestionDeClientes')->name('gestionDeClientes');
+        Route::view('/gestion-inventario', 'gestionInventario')->name('gestionInventario');
+        Route::view('/reporte-ventas', 'ventas.index')->name('ventas.index');
+    });
 
-Route::get('/ventas', function () {
-    return view('ventas.index');
-});
-
-// Rutas adicionales existentes
-Route::get('/punto-de-venta', function () {
-    return view('puntoDeVenta');
-});
-
-Route::get('/gestion-clientes', function () {
-    return view('gestionDeClientes');
-});
-
-Route::get('/gestion-inventario', function () {
-    return view('gestionInventario');
-});
-
-Route::get('/nuevo-usuario', function () {
-    return view('nuevoUsuario');
-});
+}); // CIERRE DEL GRUPO PROTEGIDO CON 'auth'

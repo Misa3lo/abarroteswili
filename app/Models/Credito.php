@@ -2,111 +2,48 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Credito extends Model
 {
-    use HasFactory, SoftDeletes;
+    // Asegúrate de que tienes esta línea si usas la columna 'deleted_at'
+    use SoftDeletes;
 
-    protected $table = 'creditos';
-    protected $primaryKey = 'id';
-
+    // Las columnas que pueden ser asignadas masivamente (incluyendo las corregidas)
     protected $fillable = [
         'cliente_id',
-        'adeudo',
-        'descripcion'
+        'ticket_id', // Importante tras la migración
+        'monto_original',
+        'adeudo', // La columna que usamos para el saldo pendiente
     ];
 
-    protected $dates = ['deleted_at'];
+    // Las columnas que deben ser tratadas como objetos Carbon
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
-    // Relación con Cliente
+
+    /**
+     * Relación con el Ticket (1 a 1).
+     * Usa 'unsignedInteger' si la ID de tickets es INT(11)
+     */
+    public function ticket()
+    {
+        return $this->belongsTo(Ticket::class, 'ticket_id');
+    }
+
+    /**
+     * Relación con el Cliente (1 a 1).
+     */
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
-    // Relación con Abonos
+    /**
+     * Relación con los Abonos (1 a Muchos).
+     */
     public function abonos()
     {
-        return $this->hasMany(Abono::class, 'credito_id');
-    }
-
-    // Accesor para el adeudo formateado
-    public function getAdeudoFormateadoAttribute()
-    {
-        return '$' . number_format($this->adeudo, 2);
-    }
-
-    // Método para calcular el total abonado
-    public function getTotalAbonadoAttribute()
-    {
-        return $this->abonos()->sum('abono');
-    }
-
-    // Método para calcular el saldo pendiente
-    public function getSaldoPendienteAttribute()
-    {
-        return $this->adeudo - $this->total_abonado;
-    }
-
-    // Método para verificar si está pagado
-    public function getEstaPagadoAttribute()
-    {
-        return $this->saldo_pendiente <= 0;
-    }
-
-    // Método para verificar si está vencido (si tuvieras fecha_vencimiento)
-    public function getEstaVencidoAttribute()
-    {
-        // Si agregas fecha_vencimiento a tu tabla:
-        // return $this->fecha_vencimiento && $this->fecha_vencimiento < now();
-        return false;
-    }
-
-    // Scope para créditos activos (con adeudo > 0)
-    public function scopeActivos($query)
-    {
-        return $query->where('adeudo', '>', 0);
-    }
-
-    // Scope para créditos pagados
-    public function scopePagados($query)
-    {
-        return $query->where('adeudo', '<=', 0);
-    }
-
-    // Scope para créditos de un cliente
-    public function scopePorCliente($query, $clienteId)
-    {
-        return $query->where('cliente_id', $clienteId);
-    }
-
-    // Scope para búsqueda por nombre de cliente
-    public function scopePorNombreCliente($query, $nombre)
-    {
-        return $query->whereHas('cliente.persona', function($q) use ($nombre) {
-            $q->where('nombre', 'like', "%{$nombre}%")
-                ->orWhere('apaterno', 'like', "%{$nombre}%");
-        });
-    }
-
-    // Método para registrar un abono
-    public function registrarAbono($monto, $fechaHora = null)
-    {
-        if ($monto > $this->adeudo) {
-            throw new \Exception('El abono no puede ser mayor al adeudo actual');
-        }
-
-        $abono = Abono::create([
-            'credito_id' => $this->id,
-            'abono' => $monto,
-            'fecha_hora' => $fechaHora ?? now()
-        ]);
-
-        $this->decrement('adeudo', $monto);
-
-        return $abono;
+        return $this->hasMany(Abono::class);
     }
 }

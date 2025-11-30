@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // AGREGAR ESTO: Registro del alias 'can' para tu CheckRole Middleware
+        $middleware->alias([
+            'can' => \App\Http\Middleware\CheckRole::class,
+        ]);
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {

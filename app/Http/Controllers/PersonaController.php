@@ -7,109 +7,88 @@ use Illuminate\Http\Request;
 
 class PersonaController extends Controller
 {
+    /**
+     * Muestra una lista de todas las personas. (INDEX)
+     */
     public function index()
     {
-        $personas = Persona::with(['cliente', 'usuario'])
-            ->orderBy('nombre')
-            ->paginate(15);
-
+        $personas = Persona::all();
         return view('personas.index', compact('personas'));
     }
 
+    /**
+     * Muestra el formulario para crear una nueva persona. (CREATE)
+     */
     public function create()
     {
         return view('personas.create');
     }
 
+    /**
+     * Almacena una persona recién creada en el almacenamiento. (STORE)
+     */
     public function store(Request $request)
     {
+        // 1. Validación
         $request->validate([
             'nombre' => 'required|string|max:100',
             'apaterno' => 'required|string|max:100',
-            'amaterno' => 'nullable|string|max:100',
-            'telefono' => 'nullable|string|max:15',
-            'direccion' => 'nullable|string|max:255'
+            'amaterno' => 'required|string|max:100',
+            'telefono' => 'nullable|string|max:20',
+            'direccion' => 'nullable|string|max:255',
         ]);
 
+        // 2. Creación
         Persona::create($request->all());
 
+        // 3. Redirección (por ahora, volvemos al índice)
         return redirect()->route('personas.index')
-            ->with('success', 'Persona creada correctamente');
+            ->with('success', 'Persona creada exitosamente.');
     }
 
-    public function show(Persona $persona)
-    {
-        $persona->load(['cliente.creditos.abonos', 'usuario.tickets']);
-        return view('personas.show', compact('persona'));
-    }
-
+    /**
+     * Muestra el formulario para editar la persona especificada. (EDIT)
+     */
     public function edit(Persona $persona)
     {
         return view('personas.edit', compact('persona'));
     }
 
+    /**
+     * Actualiza la persona especificada en el almacenamiento. (UPDATE)
+     */
     public function update(Request $request, Persona $persona)
     {
+        // 1. Validación
         $request->validate([
             'nombre' => 'required|string|max:100',
             'apaterno' => 'required|string|max:100',
-            'amaterno' => 'nullable|string|max:100',
-            'telefono' => 'nullable|string|max:15',
-            'direccion' => 'nullable|string|max:255'
+            'amaterno' => 'required|string|max:100',
+            'telefono' => 'nullable|string|max:20',
+            'direccion' => 'nullable|string|max:255',
         ]);
 
+        // 2. Actualización
         $persona->update($request->all());
 
+        // 3. Redirección
         return redirect()->route('personas.index')
-            ->with('success', 'Persona actualizada correctamente');
+            ->with('success', 'Persona actualizada exitosamente.');
     }
 
+    /**
+     * Elimina la persona especificada del almacenamiento. (DESTROY)
+     */
     public function destroy(Persona $persona)
     {
-        // Verificar que no tenga cliente o usuario asociado
-        if ($persona->es_cliente || $persona->es_usuario) {
+        // Cuidado: Si esta persona es un cliente o un usuario, la FK fallará.
+        try {
+            $persona->delete();
             return redirect()->route('personas.index')
-                ->with('error', 'No se puede eliminar la persona porque tiene cliente o usuario asociado');
+                ->with('success', 'Persona eliminada correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->route('personas.index')
+                ->with('error', 'Error: No se puede eliminar la persona porque está asociada a un cliente o usuario.');
         }
-
-        $persona->delete();
-
-        return redirect()->route('personas.index')
-            ->with('success', 'Persona eliminada correctamente');
-    }
-
-    public function search(Request $request)
-    {
-        $search = $request->get('search');
-
-        $personas = Persona::with(['cliente', 'usuario'])
-            ->porNombre($search)
-            ->orWherePorTelefono($search)
-            ->orderBy('nombre')
-            ->paginate(15);
-
-        return view('personas.index', compact('personas', 'search'));
-    }
-
-    // Método para personas que son clientes
-    public function clientes()
-    {
-        $personas = Persona::with('cliente')
-            ->clientes()
-            ->orderBy('nombre')
-            ->paginate(15);
-
-        return view('personas.clientes', compact('personas'));
-    }
-
-    // Método para personas que son usuarios
-    public function usuarios()
-    {
-        $personas = Persona::with('usuario')
-            ->usuarios()
-            ->orderBy('nombre')
-            ->paginate(15);
-
-        return view('personas.usuarios', compact('personas'));
     }
 }

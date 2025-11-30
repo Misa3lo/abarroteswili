@@ -1,0 +1,120 @@
+/* public/css/custom.css */
+
+:root {
+    --primary-color: #2c3e50;    /* Azul oscuro formal */
+    --secondary-color: #34495e;  /* Azul grisáceo para sidebar */
+    --accent-color: #27ae60;     /* Verde venta/éxito */
+    --text-light: #ecf0f1;       /* Blanco humo */
+    --bg-light: #f8f9fa;         /* Fondo general suave */
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- Layout Wrapper --- */
+#wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* --- Sidebar (Menú Izquierdo) --- */
+#sidebar-wrapper {
+    min-width: 250px;
+    max-width: 250px;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+.sidebar-heading {
+    padding: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    background-color: var(--secondary-color);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.list-group-item {
+    background-color: transparent;
+    color: var(--text-light);
+    border: none;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+}
+
+.list-group-item:hover {
+    background-color: var(--secondary-color);
+    color: #fff;
+    cursor: pointer;
+    border-left: 4px solid var(--accent-color);
+}
+
+.list-group-item i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* --- Top Navbar (Usuario y Logout) --- */
+#page-content-wrapper {
+    width: 100%;
+}
+
+.navbar-custom {
+    /* CAMBIO 1: Usar el color principal oscuro para el navbar superior */
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 10px 20px;
+}
+
+.user-info {
+    font-weight: 600;
+    /* CAMBIO 2: Forzar el color a blanco humo para el texto del usuario */
+    color: var(--text-light) !important;
+    margin-right: 15px;
+}
+
+.btn-logout {
+    background-color: #e74c3c; /* Rojo suave */
+    /* El color de la letra ya es blanco aquí (color: white), por lo que está correcto. */
+    color: white;
+    border: none;
+}
+
+.btn-logout:hover {
+    background-color: #c0392b;
+    color: white;
+}
+
+/* --- Contenido Principal --- */
+.container-fluid {
+    padding: 30px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05);
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+}
+
+/* Botones de acción general */
+.btn-primary-custom {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-success-custom {
+    background-color: var(--accent-color);
+    color: white;
+}

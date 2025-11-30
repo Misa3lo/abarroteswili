@@ -3,168 +3,83 @@
 namespace App\Http\Controllers;
 
 use App\Models\Credito;
-use App\Models\Cliente;
 use App\Models\Abono;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CreditoController extends Controller
 {
+    /**
+     * Muestra todos los créditos con saldo pendiente, agrupados por cliente. (INDEX)
+     */
     public function index()
     {
-        // Mostrar créditos con información del cliente y abonos
-        $creditos = Credito::with(['cliente.persona', 'abonos'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
-        return view('creditos.index', compact('creditos'));
-    }
-
-    public function create()
-    {
-        // Obtener clientes activos para el select
-        $clientes = Cliente::with('persona')
-            ->whereHas('persona') // Solo clientes con persona asociada
+        // CORRECCIÓN CRÍTICA: Usar 'created_at' en lugar de 'fecha_hora' para ordenar.
+        $creditos = Credito::where('adeudo', '>', 0)
+            ->with('cliente.persona', 'ticket')
+            ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('creditos.create', compact('clientes'));
+        // 2. Agruparlos por cliente para mostrar un resumen en la vista
+        $clientesConDeuda = $creditos->groupBy('cliente_id')->map(function ($items, $clientId) {
+            return [
+                'cliente' => $items->first()->cliente,
+                'saldo_total' => $items->sum('adeudo'),
+                'creditos_pendientes' => $items
+            ];
+        })->sortByDesc('saldo_total');
+
+        return view('creditos.index', compact('clientesConDeuda'));
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
-            'adeudo' => 'required|numeric|min:0.01',
-            'descripcion' => 'nullable|string|max:255'
-        ]);
-
-        // Verificar que el cliente no exceda su límite de crédito
-        $cliente = Cliente::with('creditos')->findOrFail($request->cliente_id);
-        $totalAdeudado = $cliente->creditos->sum('adeudo');
-
-        if (($totalAdeudado + $request->adeudo) > $cliente->limite_credito) {
-            return back()->withErrors([
-                'adeudo' => 'El cliente excedería su límite de crédito. Límite: $' .
-                    number_format($cliente->limite_credito, 2) .
-                    ', Actual: $' . number_format($totalAdeudado, 2)
-            ])->withInput();
-        }
-
-        // Crear el crédito
-        Credito::create([
-            'cliente_id' => $request->cliente_id,
-            'adeudo' => $request->adeudo,
-            'descripcion' => $request->descripcion
-        ]);
-
-        return redirect()->route('creditos.index')
-            ->with('success', 'Crédito registrado correctamente');
-    }
-
+    /**
+     * Muestra el detalle de un crédito específico, su historial de abonos y el formulario de pago. (SHOW)
+     */
     public function show(Credito $credito)
     {
-        // Cargar relaciones para mostrar
-        $credito->load(['cliente.persona', 'abonos']);
+        $credito->load('cliente.persona', 'ticket.ventas.producto', 'abonos');
 
         return view('creditos.show', compact('credito'));
     }
 
-    public function edit(Credito $credito)
-    {
-        $credito->load(['cliente.persona']);
-        $clientes = Cliente::with('persona')->get();
-
-        return view('creditos.edit', compact('credito', 'clientes'));
-    }
-
-    public function update(Request $request, Credito $credito)
+    /**
+     * Procesa un abono (pago) a un crédito específico, actualizando el saldo. (STORE ABONO)
+     */
+    public function storeAbono(Request $request, Credito $credito)
     {
         $request->validate([
-            'adeudo' => 'required|numeric|min:0',
-            'descripcion' => 'nullable|string|max:255'
+            'monto_abono' => 'required|numeric|min:0.01',
         ]);
 
-        // Si se reduce el adeudo, verificar que no sea menor al total abonado
-        $totalAbonado = $credito->abonos()->sum('abono');
-        if ($request->adeudo < $totalAbonado) {
-            return back()->withErrors([
-                'adeudo' => 'El adeudo no puede ser menor al total abonado ($' .
-                    number_format($totalAbonado, 2) . ')'
-            ])->withInput();
+        $montoAbono = (float) $request->monto_abono;
+        $saldoPendiente = (float) $credito->adeudo;
+
+        if ($montoAbono > $saldoPendiente) {
+            return back()->with('error', 'El monto del abono ($' . number_format($montoAbono, 2) . ') no puede ser mayor al saldo pendiente de $' . number_format($saldoPendiente, 2));
         }
 
-        $credito->update([
-            'adeudo' => $request->adeudo,
-            'descripcion' => $request->descripcion
-        ]);
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('creditos.index')
-            ->with('success', 'Crédito actualizado correctamente');
-    }
+            // En la tabla 'abonos' SÍ existe la columna 'fecha_hora', por eso esto es correcto.
+            Abono::create([
+                'credito_id' => $credito->id,
+                'abono' => $montoAbono,
+                'fecha_hora' => now(),
+            ]);
 
-    public function destroy(Credito $credito)
-    {
-        // Verificar que no tenga abonos antes de eliminar
-        if ($credito->abonos()->count() > 0) {
-            return redirect()->route('creditos.index')
-                ->with('error', 'No se puede eliminar un crédito que tiene abonos registrados');
+            $credito->decrement('adeudo', $montoAbono);
+
+            DB::commit();
+
+            $credito->refresh();
+
+            return redirect()->route('creditos.show', $credito->id)
+                ->with('success', 'Abono de $' . number_format($montoAbono, 2) . ' registrado con éxito. Nuevo saldo pendiente: $' . number_format($credito->adeudo, 2));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al procesar el abono: ' . $e->getMessage());
         }
-
-        $credito->delete();
-
-        return redirect()->route('creditos.index')
-            ->with('success', 'Crédito eliminado correctamente');
-    }
-
-    // Método para mostrar créditos activos
-    public function activos()
-    {
-        $creditos = Credito::with(['cliente.persona', 'abonos'])
-            ->activos() // Usando el scope del modelo
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
-        return view('creditos.activos', compact('creditos'));
-    }
-
-    // Método para mostrar créditos de un cliente específico
-    public function porCliente($clienteId)
-    {
-        $cliente = Cliente::with(['persona', 'creditos.abonos'])
-            ->findOrFail($clienteId);
-
-        $creditos = $cliente->creditos()->orderBy('created_at', 'desc')->get();
-
-        return view('creditos.por-cliente', compact('cliente', 'creditos'));
-    }
-
-    // Método para registrar un abono desde el controlador de créditos
-    public function registrarAbono(Request $request, Credito $credito)
-    {
-        $request->validate([
-            'abono' => 'required|numeric|min:0.01|max:' . $credito->adeudo,
-            'fecha_hora' => 'nullable|date'
-        ]);
-
-        // Crear el abono
-        Abono::create([
-            'credito_id' => $credito->id,
-            'abono' => $request->abono,
-            'fecha_hora' => $request->fecha_hora ?? now()
-        ]);
-
-        // Actualizar el adeudo del crédito
-        $credito->decrement('adeudo', $request->abono);
-
-        return redirect()->route('creditos.show', $credito)
-            ->with('success', 'Abono registrado correctamente');
-    }
-
-    // Método para ver el historial de abonos de un crédito
-    public function historialAbonos(Credito $credito)
-    {
-        $credito->load(['cliente.persona', 'abonos']);
-        $abonos = $credito->abonos()->orderBy('fecha_hora', 'desc')->get();
-
-        return view('creditos.historial-abonos', compact('credito', 'abonos'));
     }
 }

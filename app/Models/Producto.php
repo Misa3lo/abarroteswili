@@ -4,15 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Producto extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'productos';
+
     protected $fillable = [
-        'nombre',
+        'codigo_barras',
         'descripcion',
         'precio_venta',
         'precio_compra',
@@ -22,32 +22,12 @@ class Producto extends Model
 
     public function departamento()
     {
+        // Asumiendo que tienes un modelo llamado 'Departamento'
         return $this->belongsTo(Departamento::class);
     }
 
     public function surtidos()
     {
-        return $this->hasMany(Surtido::class);
-    }
-
-    public function ventas()
-    {
-        return $this->hasMany(Venta::class);
-    }
-
-    public function getGananciaUnitariaAttribute()
-    {
-        return $this->precio_venta - $this->precio_compra;
-    }
-
-    public function getEstadoStockAttribute()
-    {
-        if ($this->existencias == 0) {
-            return 'Agotado';
-        } elseif ($this->existencias < 10) {
-            return 'Bajo Stock';
-        } else {
-            return 'Disponible';
-        }
+        return $this->hasMany(Surtido::class, 'producto_id');
     }
 }
