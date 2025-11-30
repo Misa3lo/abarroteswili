@@ -3,21 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Abarrotes Wili</title>
+    <title>Métodos de Pago - Abarrotes Wili</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: #f5f6fa;
-            color: #2c3e50;
-        }
-
-        /* Sidebar Navigation */
         .sidebar {
             position: fixed;
             left: 0;
@@ -27,48 +15,22 @@
             background: #2c3e50;
             color: white;
             padding: 20px 0;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            z-index: 1000;
         }
-
-        .logo {
-            text-align: center;
+        .main-content {
+            margin-left: 250px;
             padding: 20px;
-            border-bottom: 1px solid #34495e;
-            margin-bottom: 20px;
         }
-
-        .logo h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .logo span {
-            color: #3498db;
-        }
-
-        .nav-menu {
-            list-style: none;
-        }
-
-        .nav-item {
-            margin: 5px 15px;
-        }
-
         .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
             color: #bdc3c7;
-            text-decoration: none;
+            padding: 12px 15px;
             border-radius: 8px;
-            transition: all 0.3s ease;
         }
-
         .nav-link:hover, .nav-link.active {
             background: #34495e;
             color: white;
         }
+<<<<<<< HEAD
+=======
 
         .nav-link i {
             margin-right: 10px;
@@ -282,26 +244,29 @@
             font-size: 12px;
             font-weight: 500;
         }
+>>>>>>> af8d6ecd776bf85855ff9bef957bd9d7ae1026fc
     </style>
 </head>
 <body>
-<!-- Sidebar Navigation -->
+<!-- Sidebar -->
 <nav class="sidebar">
-    <div class="logo">
-        <h1>Abarrotes <span>Wili</span></h1>
+    <div class="logo text-center py-3 border-bottom">
+        <h4>Abarrotes <span class="text-primary">Wili</span></h4>
     </div>
-    <ul class="nav-menu">
+    <ul class="nav flex-column mt-3">
         <li class="nav-item">
-            <a href="/dashboard" class="nav-link active">
-                <i>📊</i> Dashboard
-            </a>
+            <a href="/dashboard" class="nav-link">📊 Dashboard</a>
         </li>
         <li class="nav-item">
-            <a href="/punto-de-venta" class="nav-link">
-                <i>🛒</i> Punto de Venta
-            </a>
+            <a href="/metodos-pago" class="nav-link active">💳 Métodos de Pago</a>
         </li>
         <li class="nav-item">
+<<<<<<< HEAD
+            <a href="/productos" class="nav-link">🏷️ Productos</a>
+        </li>
+        <li class="nav-item">
+            <a href="/ventas" class="nav-link">💰 Ventas</a>
+=======
             <a href="/gestion-inventario" class="nav-link" id="nav-inventario">
                 <i>📦</i> Inventario
             </a>
@@ -340,12 +305,21 @@
             <a href="/login" class="nav-link" style="color: #e74c3c;">
                 <i>🚪</i> Cerrar Sesión
             </a>
+>>>>>>> af8d6ecd776bf85855ff9bef957bd9d7ae1026fc
         </li>
     </ul>
 </nav>
 
 <!-- Main Content -->
 <main class="main-content">
+<<<<<<< HEAD
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>💳 Métodos de Pago</h2>
+            <a href="{{ route('metodos-pago.create') }}" class="btn btn-primary mb-3">➕ Nuevo Método</a>
+                ➕ Nuevo Método de Pago
+            </a>
+=======
     <!-- Header -->
     <header class="header">
         <h2>Dashboard Principal</h2>
@@ -356,9 +330,70 @@
             <button class="btn btn-primary" onclick="location.href='/punto-de-venta'">
                 Nueva Venta
             </button>
+>>>>>>> af8d6ecd776bf85855ff9bef957bd9d7ae1026fc
         </div>
-    </header>
 
+<<<<<<< HEAD
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show">
+                ✅ {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show">
+                ❌ {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($metodosPago as $metodo)
+                            <tr>
+                                <td>{{ $metodo->id }}</td>
+                                <td>{{ $metodo->descripcion }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('metodo-pago.show', $metodo) }}" class="btn btn-info">
+                                            👁️ Ver
+                                        </a>
+                                        <a href="{{ route('metodo-pago.edit', $metodo) }}" class="btn btn-warning">
+                                            ✏️ Editar
+                                        </a>
+                                        <form action="{{ route('metodo-pago.destroy', $metodo) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger"
+                                                    onclick="return confirm('¿Eliminar {{ $metodo->descripcion }}?')">
+                                                🗑️ Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+=======
     <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="stat-card sales">
@@ -568,5 +603,6 @@
         window.location.href = '/dashboard?rol=' + newRole;
     }
 </script>
+>>>>>>> af8d6ecd776bf85855ff9bef957bd9d7ae1026fc
 </body>
 </html>

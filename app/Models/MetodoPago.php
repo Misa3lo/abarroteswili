@@ -2,11 +2,23 @@
 
 namespace App\Http\Controllers;
 
+<<<<<<< HEAD
+use Illuminate\Database\Eloquent\Model;
+=======
 use App\Models\MetodoPago;
 use Illuminate\Http\Request;
+>>>>>>> af8d6ecd776bf85855ff9bef957bd9d7ae1026fc
 
 class MetodoPagoController extends Controller
 {
+<<<<<<< HEAD
+    protected $table = 'metodo_pago';
+    protected $primaryKey = 'id';
+    protected $fillable = ['descripcion'];
+    public $timestamps = false;
+
+    // No usar SoftDeletes si la tabla no tiene deleted_at
+=======
     public function index()
     {
         $metodosPago = MetodoPago::withCount('tickets')
@@ -163,4 +175,5 @@ class MetodoPagoController extends Controller
 
         return response()->json($metodoPago);
     }
+>>>>>>> af8d6ecd776bf85855ff9bef957bd9d7ae1026fc
 }

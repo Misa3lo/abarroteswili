@@ -2,34 +2,27 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClienteController;
-use App\Http\Controllers\PersonaController; // <-- NECESARIO
 use App\Http\Controllers\AbonoController;
 // Agregaremos más controladores según los vayamos creando
 
 // Rutas principales
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard'); // Se recomienda nombrar la ruta
-
 Route::get('/', function () {
+    return view('dashboard');
+});
+
+Route::get('/login', function () {
     return view('iniciosesion');
 });
 
-// Rutas de módulos CRUD (Recursos)
-// ===================================
+Route::get('/dashboard', function () {
+    return view('dashboard');
+});
 
-// Clientes: Define las 7 rutas CRUD (index, create, store, show, edit, update, destroy)
-Route::resource('clientes', ClienteController::class);
+// Rutas de módulos CRUD (Vistas)
+Route::get('/clientes', function () {
+    return view('clientes.index');
+});
 
-// Personas: Define las 7 rutas CRUD para el directorio general
-Route::resource('personas', PersonaController::class);
-
-// Ruta adicional para la búsqueda de Personas (método 'search' no estándar)
-Route::get('personas/search', [PersonaController::class, 'search'])->name('personas.search');
-
-
-// Rutas de módulos de solo vista (Temporales)
-// ==============================================
 Route::get('/abonos', function () {
     return view('abonos.index');
 });
@@ -44,6 +37,10 @@ Route::get('/departamentos', function () {
 
 Route::get('/metodos-pago', function () {
     return view('metodospago.index');
+});
+
+Route::get('/personas', function () {
+    return view('personas.index');
 });
 
 Route::get('/productos', function () {

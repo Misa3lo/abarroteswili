@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Productos - Abarrotes Wili</title>
     <style>
+        /* --- INICIO DE ESTILOS EXTRAÍDOS --- */
         * {
             margin: 0;
             padding: 0;
@@ -129,21 +130,10 @@
             border-left: 4px solid #3498db;
         }
 
-        .stat-card.total {
-            border-left-color: #3498db;
-        }
-
-        .stat-card.stock-bajo {
-            border-left-color: #e74c3c;
-        }
-
-        .stat-card.agotados {
-            border-left-color: #f39c12;
-        }
-
-        .stat-card.ganancia {
-            border-left-color: #27ae60;
-        }
+        .stat-card.total { border-left-color: #3498db; }
+        .stat-card.stock-bajo { border-left-color: #e74c3c; }
+        .stat-card.agotados { border-left-color: #f39c12; }
+        .stat-card.ganancia { border-left-color: #27ae60; }
 
         .stat-number {
             font-size: 28px;
@@ -203,9 +193,7 @@
             margin-bottom: 25px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
 
         .form-group label {
             display: block;
@@ -261,6 +249,7 @@
             margin-top: 30px;
         }
 
+        /* Buttons */
         .btn {
             padding: 12px 25px;
             border: none;
@@ -274,42 +263,19 @@
             gap: 8px;
         }
 
-        .btn-primary {
-            background: #27ae60;
-            color: white;
-        }
+        .btn-primary { background: #27ae60; color: white; }
+        .btn-primary:hover { background: #219a52; transform: translateY(-2px); }
 
-        .btn-primary:hover {
-            background: #219a52;
-            transform: translateY(-2px);
-        }
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn-secondary:hover { background: #7f8c8d; }
 
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
 
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .btn-warning {
-            background: #f39c12;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: #e67e22;
-        }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-warning:hover { background: #e67e22; }
+        
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
 
         /* Table Styles */
         .table-container {
@@ -326,72 +292,36 @@
             margin-bottom: 20px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        tr:hover { background: #f8f9fa; }
 
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
+        /* Status Badges */
         .status-badge {
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
         }
+        .status-disponible { background: #d4edda; color: #155724; }
+        .status-bajo-stock { background: #fff3cd; color: #856404; }
+        .status-agotado { background: #f8d7da; color: #721c24; }
 
-        .status-disponible {
-            background: #d4edda;
-            color: #155724;
-        }
+        .action-buttons { display: flex; gap: 8px; }
 
-        .status-bajo-stock {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-agotado {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-
+        /* Search Box */
         .search-box {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
         }
-
         .search-box input {
             flex: 1;
             padding: 10px 15px;
             border: 2px solid #e1e8ed;
             border-radius: 8px;
         }
-
         .search-box button {
             padding: 10px 20px;
             background: #3498db;
@@ -401,7 +331,7 @@
             cursor: pointer;
         }
 
-        /* Product Cards */
+        /* Product Cards (Visual Catalog) */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -423,13 +353,8 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
         }
 
-        .product-card.stock-bajo {
-            border-left-color: #f39c12;
-        }
-
-        .product-card.agotado {
-            border-left-color: #e74c3c;
-        }
+        .product-card.stock-bajo { border-left-color: #f39c12; }
+        .product-card.agotado { border-left-color: #e74c3c; }
 
         .product-header {
             display: flex;
@@ -445,32 +370,14 @@
             margin-bottom: 5px;
         }
 
-        .product-department {
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .product-price {
-            font-size: 20px;
-            font-weight: bold;
-            color: #27ae60;
-        }
-
-        .product-stock {
-            font-size: 14px;
-            margin: 10px 0;
-        }
-
+        .product-department { font-size: 14px; color: #7f8c8d; }
+        .product-price { font-size: 20px; font-weight: bold; color: #27ae60; }
+        .product-stock { font-size: 14px; margin: 10px 0; }
         .product-description {
             color: #5d6d7e;
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 15px;
-        }
-
-        .product-actions {
-            display: flex;
-            gap: 10px;
         }
 
         .stock-bar {
@@ -486,131 +393,89 @@
             border-radius: 3px;
             transition: width 0.3s ease;
         }
+        .stock-fill.alto { background: #27ae60; width: 90%; }
+        .stock-fill.medio { background: #f39c12; width: 45%; }
+        .stock-fill.bajo { background: #e74c3c; width: 15%; }
 
-        .stock-fill.alto {
-            background: #27ae60;
-            width: 90%;
-        }
+        /* --- FIN DE ESTILOS EXTRAÍDOS --- */
 
-        .stock-fill.medio {
-            background: #f39c12;
-            width: 45%;
-        }
-
-        .stock-fill.bajo {
-            background: #e74c3c;
-            width: 15%;
-        }
+        /* Estilos para alertas de Laravel (Agregados adicionales) */
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 4px; color: white; }
+        .alert-success { background-color: #27ae60; }
+        .alert-danger { background-color: #e74c3c; }
     </style>
 </head>
 <body>
-<!-- Sidebar Navigation -->
+
 <nav class="sidebar">
-    <div class="logo">
-        <h1>Abarrotes <span>Wili</span></h1>
-    </div>
+    <div class="logo"><h1>Abarrotes <span>Wili</span></h1></div>
     <ul class="nav-menu">
-        <li class="nav-item">
-            <a href="/dashboard" class="nav-link">
-                <i>📊</i> Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/punto-de-venta" class="nav-link">
-                <i>🛒</i> Punto de Venta
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/gestion-inventario" class="nav-link">
-                <i>📦</i> Inventario
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/productos" class="nav-link active">
-                <i>🏷️</i> Productos
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/departamentos" class="nav-link">
-                <i>📁</i> Departamentos
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/surtidos" class="nav-link">
-                <i>📥</i> Surtidos
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="/login" class="nav-link" style="color: #e74c3c;">
-                <i>🚪</i> Cerrar Sesión
-            </a>
-        </li>
+        <li class="nav-item"><a href="{{ route('productos.index') }}" class="nav-link active"><i>🏷️</i> Productos</a></li>
     </ul>
 </nav>
 
-<!-- Main Content -->
 <main class="main-content">
-    <!-- Header -->
     <header class="header">
         <h2>Gestión de Productos</h2>
-        <div class="user-info">
-            <div class="user-avatar">AW</div>
-            <span>Administrador</span>
-        </div>
+        <div class="user-info"><div class="user-avatar">AW</div><span>Administrador</span></div>
     </header>
 
-    <!-- Stats Cards -->
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="stats-grid">
         <div class="stat-card total">
-            <div class="stat-number">25</div>
+            <div class="stat-number">{{ $productos->count() }}</div>
             <div class="stat-label">Total de Productos</div>
         </div>
-        <div class="stat-card stock-bajo">
-            <div class="stat-number">8</div>
-            <div class="stat-label">Stock Bajo</div>
         </div>
-        <div class="stat-card agotados">
-            <div class="stat-number">3</div>
-            <div class="stat-label">Agotados</div>
-        </div>
-        <div class="stat-card ganancia">
-            <div class="stat-number">42%</div>
-            <div class="stat-label">Margen Promedio</div>
-        </div>
-    </div>
 
-    <!-- Tabs -->
     <div class="tabs">
         <div class="tab active" onclick="showTab('nuevo')">Nuevo Producto</div>
         <div class="tab" onclick="showTab('lista')">Lista de Productos</div>
         <div class="tab" onclick="showTab('catalogo')">Catálogo Visual</div>
     </div>
 
-    <!-- Formulario de Nuevo Producto -->
     <div id="nuevo-tab" class="form-container">
         <h3 class="form-title">Registrar Nuevo Producto</h3>
-        <form id="productoForm">
+        
+        <form id="productoFormLaravel" action="{{ route('productos.store') }}" method="POST">
+            @csrf 
+
             <div class="form-section">
                 <h4 class="section-title">Información Básica</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="nombre">Nombre del Producto *</label>
-                        <input type="text" id="nombre" name="nombre" required>
+                        <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" required>
                     </div>
+
                     <div class="form-group">
                         <label for="departamento_id">Departamento *</label>
                         <select id="departamento_id" name="departamento_id" required>
                             <option value="">Seleccione un departamento</option>
-                            <option value="1">Abarrotes</option>
-                            <option value="2">Lácteos</option>
-                            <option value="3">Bebidas</option>
-                            <option value="4">Limpieza</option>
-                            <option value="5">Botanas</option>
+                            @foreach($departamentos as $dep)
+                                <option value="{{ $dep->id }}" {{ old('departamento_id') == $dep->id ? 'selected' : '' }}>
+                                    {{ $dep->nombre }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label for="descripcion">Descripción *</label>
-                        <textarea id="descripcion" name="descripcion" required></textarea>
+                        <textarea id="descripcion" name="descripcion" required>{{ old('descripcion') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -620,25 +485,21 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="precio_compra">Precio de Compra *</label>
-                        <input type="number" id="precio_compra" name="precio_compra" step="0.01" min="0" required>
+                        <input type="number" id="precio_compra" name="precio_compra" step="0.01" value="{{ old('precio_compra') }}" required>
                     </div>
                     <div class="form-group">
                         <label for="precio_venta">Precio de Venta *</label>
-                        <input type="number" id="precio_venta" name="precio_venta" step="0.01" min="0" required>
+                        <input type="number" id="precio_venta" name="precio_venta" step="0.01" value="{{ old('precio_venta') }}" required>
                     </div>
                     <div class="form-group">
                         <label for="existencias">Existencias Iniciales *</label>
-                        <input type="number" id="existencias" name="existencias" step="0.01" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="stock_minimo">Stock Mínimo</label>
-                        <input type="number" id="stock_minimo" name="stock_minimo" step="0.01" min="0" value="10">
+                        <input type="number" id="existencias" name="existencias" step="0.01" value="{{ old('existencias') }}" required>
                     </div>
                 </div>
             </div>
 
             <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('productoFormLaravel').reset()">
                     <i>🗑️</i> Limpiar
                 </button>
                 <button type="submit" class="btn btn-primary">
@@ -648,18 +509,9 @@
         </form>
     </div>
 
-    <!-- Lista de Productos -->
     <div id="lista-tab" class="table-container" style="display: none;">
         <div class="table-header">
             <h3>Productos Registrados</h3>
-            <button class="btn btn-primary" onclick="exportarProductos()">
-                <i>📄</i> Exportar Lista
-            </button>
-        </div>
-
-        <div class="search-box">
-            <input type="text" placeholder="Buscar producto...">
-            <button>🔍 Buscar</button>
         </div>
 
         <table>
@@ -674,259 +526,96 @@
                 <th>Acciones</th>
             </tr>
             </thead>
+
             <tbody>
+            @forelse($productos as $producto)
             <tr>
-                <td>1</td>
-                <td>Arroz kg</td>
-                <td>Abarrotes</td>
-                <td>$25.00</td>
-                <td>50</td>
-                <td><span class="status-badge status-disponible">Disponible</span></td>
+                <td>{{ $producto->id }}</td>
+                <td>{{ $producto->nombre }}</td>
+                <td>{{ $producto->departamento->nombre ?? 'Sin Depto' }}</td>
+                <td>${{ number_format($producto->precio_venta, 2) }}</td>
+                <td>{{ $producto->existencias }}</td>
+                <td>
+                    @php
+                        $estado = $producto->estado_stock;
+                        $clase = match($estado) {
+                            'Disponible' => 'status-disponible',
+                            'Bajo Stock' => 'status-bajo-stock',
+                            'Agotado' => 'status-agotado',
+                            default => ''
+                        };
+                    @endphp
+                    <span class="status-badge {{ $clase }}">{{ $estado }}</span>
+                </td>
+
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm">
-                            <i>✏️</i> Editar
-                        </button>
-                        <button class="btn btn-primary btn-sm">
-                            <i>👁️</i> Ver
-                        </button>
+                        <a href="{{ route('productos.edit', $producto->id) }}" class="btn btn-warning btn-sm">
+                            ✏️ Editar
+                        </a>
+
+                        <form action="{{ route('productos.destroy', $producto->id) }}" method="POST" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro?')">
+                                🗑️
+                            </button>
+                        </form>
                     </div>
                 </td>
             </tr>
+            @empty
             <tr>
-                <td>2</td>
-                <td>Frijol kg</td>
-                <td>Abarrotes</td>
-                <td>$32.00</td>
-                <td>8</td>
-                <td><span class="status-badge status-bajo-stock">Bajo Stock</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm">
-                            <i>✏️</i> Editar
-                        </button>
-                        <button class="btn btn-primary btn-sm">
-                            <i>👁️</i> Ver
-                        </button>
-                    </div>
-                </td>
+                <td colspan="7" style="text-align:center;">No hay productos registrados aún.</td>
             </tr>
-            <tr>
-                <td>6</td>
-                <td>Leche entera lt</td>
-                <td>Lácteos</td>
-                <td>$22.00</td>
-                <td>35</td>
-                <td><span class="status-badge status-disponible">Disponible</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm">
-                            <i>✏️</i> Editar
-                        </button>
-                        <button class="btn btn-primary btn-sm">
-                            <i>👁️</i> Ver
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>19</td>
-                <td>Pan blanco kg</td>
-                <td>Panadería</td>
-                <td>$38.00</td>
-                <td>0</td>
-                <td><span class="status-badge status-agotado">Agotado</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-warning btn-sm">
-                            <i>✏️</i> Editar
-                        </button>
-                        <button class="btn btn-primary btn-sm">
-                            <i>👁️</i> Ver
-                        </button>
-                    </div>
-                </td>
-            </tr>
+            @endforelse
             </tbody>
         </table>
     </div>
 
-    <!-- Catálogo Visual -->
-    <div id="catalogo-tab" class="table-container" style="display: none;">
-        <div class="table-header">
-            <h3>Catálogo de Productos</h3>
-            <button class="btn btn-primary" onclick="location.href='/punto-de-venta'">
-                <i>🛒</i> Ir a Ventas
-            </button>
-        </div>
-
+    <div id="catalogo-tab" class="table-container" style="display:none;">
         <div class="products-grid">
-            <div class="product-card">
-                <div class="product-header">
-                    <div>
-                        <div class="product-name">Arroz kg</div>
-                        <div class="product-department">Abarrotes</div>
+            @foreach($productos as $producto)
+                <div class="product-card {{ $producto->existencias == 0 ? 'agotado' : ($producto->existencias < 10 ? 'stock-bajo' : '') }}">
+                    <div class="product-header">
+                        <div>
+                            <div class="product-name">{{ $producto->nombre }}</div>
+                            <div class="product-department">{{ $producto->departamento->nombre ?? 'General' }}</div>
+                        </div>
+                        <div class="product-price">${{ number_format($producto->precio_venta, 2) }}</div>
                     </div>
-                    <div class="product-price">$25.00</div>
+                    <div class="product-stock">{{ $producto->existencias }} unidades</div>
                 </div>
-                <div class="product-stock">50 unidades</div>
-                <div class="stock-bar">
-                    <div class="stock-fill alto"></div>
-                </div>
-                <div class="product-description">
-                    Arroz grano largo 1kg. Producto de alta calidad para consumo diario.
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-primary btn-sm">
-                        <i>✏️</i> Editar
-                    </button>
-                    <button class="btn btn-warning btn-sm">
-                        <i>📥</i> Surtir
-                    </button>
-                </div>
-            </div>
-
-            <div class="product-card stock-bajo">
-                <div class="product-header">
-                    <div>
-                        <div class="product-name">Frijol kg</div>
-                        <div class="product-department">Abarrotes</div>
-                    </div>
-                    <div class="product-price">$32.00</div>
-                </div>
-                <div class="product-stock">8 unidades</div>
-                <div class="stock-bar">
-                    <div class="stock-fill bajo"></div>
-                </div>
-                <div class="product-description">
-                    Frijol negro 1kg. Alto contenido proteico, ideal para guisados.
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-primary btn-sm">
-                        <i>✏️</i> Editar
-                    </button>
-                    <button class="btn btn-warning btn-sm">
-                        <i>📥</i> Surtir
-                    </button>
-                </div>
-            </div>
-
-            <div class="product-card">
-                <div class="product-header">
-                    <div>
-                        <div class="product-name">Leche entera lt</div>
-                        <div class="product-department">Lácteos</div>
-                    </div>
-                    <div class="product-price">$22.00</div>
-                </div>
-                <div class="product-stock">35 unidades</div>
-                <div class="stock-bar">
-                    <div class="stock-fill medio"></div>
-                </div>
-                <div class="product-description">
-                    Leche entera 1 litro. Pasteurizada y envasada, rica en calcio.
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-primary btn-sm">
-                        <i>✏️</i> Editar
-                    </button>
-                    <button class="btn btn-warning btn-sm">
-                        <i>📥</i> Surtir
-                    </button>
-                </div>
-            </div>
-
-            <div class="product-card agotado">
-                <div class="product-header">
-                    <div>
-                        <div class="product-name">Pan blanco kg</div>
-                        <div class="product-department">Panadería</div>
-                    </div>
-                    <div class="product-price">$38.00</div>
-                </div>
-                <div class="product-stock">0 unidades</div>
-                <div class="stock-bar">
-                    <div class="stock-fill bajo"></div>
-                </div>
-                <div class="product-description">
-                    Pan blanco fresco por kilo. Recién horneado, ideal para sandwiches.
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-primary btn-sm">
-                        <i>✏️</i> Editar
-                    </button>
-                    <button class="btn btn-warning btn-sm">
-                        <i>📥</i> Surtir
-                    </button>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </main>
 
 <script>
-    // Funcionalidad de tabs
-    function showTab(tabName) {
-        // Ocultar todos los tabs
-        document.getElementById('nuevo-tab').style.display = 'none';
-        document.getElementById('lista-tab').style.display = 'none';
-        document.getElementById('catalogo-tab').style.display = 'none';
+function showTab(tabName) {
+    document.getElementById('nuevo-tab').style.display = 'none';
+    document.getElementById('lista-tab').style.display = 'none';
+    document.getElementById('catalogo-tab').style.display = 'none';
 
-        // Remover clase active de todos los tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
 
-        // Mostrar tab seleccionado y agregar clase active
-        document.getElementById(tabName + '-tab').style.display = 'block';
-        event.target.classList.add('active');
+    document.getElementById(tabName + '-tab').style.display = 'block';
+    // Aquí puedes agregar la lógica para poner la clase active al botón presionado si lo deseas
+}
+
+document.getElementById('precio_compra').addEventListener('input', calcularGanancia);
+document.getElementById('precio_venta').addEventListener('input', calcularGanancia);
+
+function calcularGanancia() {
+    const precioCompra = parseFloat(document.getElementById('precio_compra').value) || 0;
+    const precioVenta  = parseFloat(document.getElementById('precio_venta').value) || 0;
+
+    if (precioCompra > 0 && precioVenta > 0) {
+        const ganancia = ((precioVenta - precioCompra) / precioCompra * 100).toFixed(1);
+        console.log("Ganancia: " + ganancia + "%");
     }
-
-    // Calcular ganancia automáticamente
-    document.getElementById('precio_compra').addEventListener('input', calcularGanancia);
-    document.getElementById('precio_venta').addEventListener('input', calcularGanancia);
-
-    function calcularGanancia() {
-        const precioCompra = parseFloat(document.getElementById('precio_compra').value) || 0;
-        const precioVenta = parseFloat(document.getElementById('precio_venta').value) || 0;
-
-        if (precioCompra > 0 && precioVenta > 0) {
-            const ganancia = ((precioVenta - precioCompra) / precioCompra * 100).toFixed(1);
-            // Podrías mostrar la ganancia en un elemento si lo deseas
-        }
-    }
-
-    // Manejar envío del formulario
-    document.getElementById('productoForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const nombre = document.getElementById('nombre').value;
-        const departamento = document.getElementById('departamento_id').value;
-        const precioVenta = document.getElementById('precio_venta').value;
-
-        if (nombre && departamento && precioVenta) {
-            alert('Producto registrado exitosamente!');
-            limpiarFormulario();
-        } else {
-            alert('Por favor complete todos los campos requeridos');
-        }
-    });
-
-    function limpiarFormulario() {
-        document.getElementById('productoForm').reset();
-    }
-
-    function exportarProductos() {
-        alert('Generando reporte de productos...');
-    }
-
-    // Navegación activa
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function() {
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
+}
 </script>
+
 </body>
 </html>
