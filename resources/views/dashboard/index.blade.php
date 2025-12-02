@@ -97,15 +97,18 @@
                     <ul class="list-group">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Productos Agotados (Stock = 0):
-                            <span class="badge bg-danger rounded-pill">{{ number_format($data['productosAgotados']) }}</span>
+                            {{-- CORRECCIÓN: Añadimos text-dark para evitar que el texto blanco se pierda --}}
+                            <span class="badge bg-danger text-dark rounded-pill">{{ number_format($data['productosAgotados']) }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Productos Bajo Mínimo de Stock:
+                            {{-- Ya estaba correcto con text-dark --}}
                             <span class="badge bg-warning text-dark rounded-pill">{{ number_format($data['productosBajoStock']) }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Clientes con Crédito Pendiente:
-                            <span class="badge bg-info rounded-pill">{{ number_format($data['creditosPendientes']) }}</span>
+                            {{-- CORRECCIÓN: Añadimos text-dark para evitar que el texto blanco se pierda --}}
+                            <span class="badge bg-info text-dark rounded-pill">{{ number_format($data['creditosPendientes']) }}</span>
                         </li>
                     </ul>
                 </div>

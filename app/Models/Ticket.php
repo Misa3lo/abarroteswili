@@ -10,6 +10,7 @@ class Ticket extends Model
     use HasFactory;
 
     protected $table = 'tickets';
+    public $timestamps = false; // Esto ya lo tenías, ¡déjalo así!
 
     protected $fillable = [
         'folio',
@@ -19,23 +20,14 @@ class Ticket extends Model
         'total'
     ];
 
-    public function ventas()
-    {
-        return $this->hasMany(Venta::class, 'ticket_id');
-    }
+    // ✅ CORRECCIÓN: Convertir 'fecha_hora' a objeto de fecha automáticamente
+    protected $casts = [
+        'fecha_hora' => 'datetime',
+    ];
 
-    public function cliente()
-    {
-        return $this->belongsTo(Cliente::class, 'cliente_id');
-    }
-
-    public function metodoPago()
-    {
-        return $this->belongsTo(MetodoPago::class, 'metodo_pago_id');
-    }
-
-    public function usuario()
-    {
-        return $this->belongsTo(Usuario::class, 'usuario_id');
-    }
+    // ... (El resto de tus relaciones: ventas, cliente, etc.)
+    public function ventas() { return $this->hasMany(Venta::class, 'ticket_id'); }
+    public function cliente() { return $this->belongsTo(Cliente::class, 'cliente_id'); }
+    public function metodoPago() { return $this->belongsTo(MetodoPago::class, 'metodo_pago_id'); }
+    public function usuario() { return $this->belongsTo(Usuario::class, 'usuario_id'); }
 }

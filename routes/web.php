@@ -50,6 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('metodos-pago', MetodoPagoController::class);
     Route::resource('personas', PersonaController::class);
     Route::resource('productos', ProductoController::class);
+    Route::resource('tickets', TicketController::class)->only(['index', 'show']);
     Route::resource('surtidos', SurtidoController::class)->except(['update', 'destroy']);
 
     // Búsqueda de Personas

@@ -18,19 +18,24 @@
 
                     <div class="mb-4 p-3 border rounded bg-light">
                         <h6 class="text-primary"><i class="fas fa-user-tag me-1"></i> Cliente (Para Crédito)</h6>
+
                         <select class="form-select" id="cliente_id" name="cliente_id">
-                            <option value="">Público General</option>
+                            <option value="13" selected>Público General</option>
+
                             @foreach($clientes as $cliente)
-                                <option value="{{ $cliente->id }}" data-limite="{{ $cliente->limite_credito }}">
-                                    {{ $cliente->persona->nombre }} {{ $cliente->persona->apaterno }} (Límite: ${{ number_format($cliente->limite_credito, 2) }})
-                                </option>
+                                {{-- Ocultamos el ID 13 de la lista generada para no duplicarlo --}}
+                                @if ($cliente->id != 13)
+                                    <option value="{{ $cliente->id }}" data-limite="{{ $cliente->limite_credito }}">
+                                        {{ $cliente->persona->nombre }} {{ $cliente->persona->apaterno }} (Límite: ${{ number_format($cliente->limite_credito, 2) }})
+                                    </option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
 
                     <h6 class="text-primary"><i class="fas fa-search me-1"></i> Agregar Productos</h6>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="codigo" placeholder="Buscar por codigo_barras o ID..." autofocus>
+                        <input type="text" class="form-control" id="codigo" placeholder="Buscar por código de barras o ID..." autofocus>
                     </div>
                     <div id="search-results" class="list-group mb-4" style="max-height: 200px; overflow-y: auto;">
                     </div>
@@ -92,7 +97,7 @@
                                 @endforeach
                             </select>
                             <div id="credit-warning" class="mt-2 text-danger fw-bold d-none">
-                                <i class="fas fa-exclamation-triangle"></i> Debe seleccionar un cliente para pagar a **Crédito**.
+                                <i class="fas fa-exclamation-triangle"></i> Debe seleccionar un cliente registrado para pagar a **Crédito**.
                             </div>
                         </div>
 
@@ -108,10 +113,14 @@
     </div>
 
     <script>
-        // JSON de productos cargado desde el controlador (ahora con la clave 'codigo_barras')
+        // 🛑 ACTUALIZACIÓN: ID REAL DEL CLIENTE PÚBLICO GENERAL
+        const ID_CLIENTE_PUBLICO = 13;
+        const ID_METODO_EFECTIVO = 1;
+
         const PRODUCT_LIST = {!! $productosJson !!};
         let cart = {};
 
+        // Referencias DOM
         const inputTotal = document.getElementById('input_total');
         const displayTotal = document.getElementById('display_total');
         const cartTableBody = document.getElementById('cart-table-body');
@@ -120,9 +129,10 @@
         const inputClienteId = document.getElementById('input_cliente_id');
         const selectMetodoPago = document.getElementById('metodo_pago_id');
         const creditWarning = document.getElementById('credit-warning');
-        const searchInput = document.getElementById('search_producto');
+        const searchInput = document.getElementById('codigo');
+        const searchResultsContainer = document.getElementById('search-results');
 
-        // Eventos de Cliente y Método de Pago
+        // Eventos
         document.getElementById('cliente_id').addEventListener('change', (e) => {
             inputClienteId.value = e.target.value;
             checkCredit();
@@ -130,176 +140,140 @@
 
         selectMetodoPago.addEventListener('change', checkCredit);
 
-        // Búsqueda de Productos con Filtro Dinámico
-        searchInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            const resultsContainer = document.getElementById('search-results');
-            resultsContainer.innerHTML = '';
+        // --- Lógica del Carrito (Búsqueda y Agregar) ---
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                searchResultsContainer.innerHTML = '';
+                if (query.length < 2) return;
 
-            if (query.length < 2) return;
+                const filtered = PRODUCT_LIST.filter(p =>
+                    p.codigo_barras.toLowerCase().includes(query) ||
+                    p.id.toString() === query ||
+                    (p.descripcion && p.descripcion.toLowerCase().includes(query))
+                ).slice(0, 10);
 
-            const filtered = PRODUCT_LIST.filter(p =>
-                // Ahora busca por p.codigo_barras (el nombre de la clave es consistente)
-                p.codigo_barras.toLowerCase().includes(query) || p.id.toString() === query
-            ).slice(0, 10);
-
-            filtered.forEach(p => {
-                const item = document.createElement('a');
-                item.className = 'list-group-item list-group-item-action';
-                item.innerHTML = `<strong>${p.codigo_barras}</strong> (Stock: ${p.stock}) - $${p.precio.toFixed(2)}`;
-                item.onclick = (e) => {
-                    e.preventDefault();
-                    addProductToCart(p.id);
-                };
-                resultsContainer.appendChild(item);
+                filtered.forEach(p => {
+                    const item = document.createElement('a');
+                    item.className = 'list-group-item list-group-item-action';
+                    item.innerHTML = `<strong>${p.codigo_barras}</strong> - ${p.descripcion || 'N/A'} (Stock: ${p.existencias}) - $${parseFloat(p.precio_venta).toFixed(2)}`;
+                    item.onclick = (e) => { e.preventDefault(); addProductToCart(p.id); };
+                    searchResultsContainer.appendChild(item);
+                });
             });
-        });
 
-        // Agregar producto con Enter (Escaneo rápido)
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const results = document.getElementById('search-results').children;
-                const query = this.value.trim().toLowerCase();
-
-                // 1. Si el código de barras está completo y coincide exactamente (escaner)
-                const exactMatch = PRODUCT_LIST.find(p => p.codigo_barras.toLowerCase() === query || p.id.toString() === query);
-
-                if (exactMatch) {
-                    addProductToCart(exactMatch.id);
-                } else if (results.length === 1) {
-                    // 2. Si hay un único resultado en la búsqueda
-                    results[0].click();
-                } else if (query.length > 0) {
-                    alert('Producto no encontrado o demasiados resultados. Intente escanear o seleccionar de la lista.');
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const query = this.value.trim().toLowerCase();
+                    const exactMatch = PRODUCT_LIST.find(p => p.codigo_barras.toLowerCase() === query || p.id.toString() === query);
+                    if (exactMatch) { addProductToCart(exactMatch.id); }
                 }
-            }
-        });
+            });
+        }
 
         function addProductToCart(productoId, cantidad = 1) {
             const productData = PRODUCT_LIST.find(p => p.id === productoId);
-
             if (!productData) return;
 
-            if (productData.stock <= 0) {
-                alert('¡Producto agotado! Stock actual: 0.');
-                return;
-            }
+            const unitPrice = parseFloat(productData.precio_venta);
+            const currentStock = parseFloat(productData.existencias);
+
+            if (currentStock <= 0) { alert('Agotado'); return; }
 
             if (cart[productoId]) {
-                // Producto ya en carrito, aumentar cantidad
-                if (cart[productoId].cantidad + cantidad > productData.stock) {
-                    alert('No hay suficiente stock disponible para este producto.');
-                    return;
-                }
+                if (cart[productoId].cantidad + cantidad > currentStock) { alert('Stock insuficiente'); return; }
                 cart[productoId].cantidad += cantidad;
             } else {
-                // Nuevo producto
-                if (cantidad > productData.stock) {
-                    alert('No hay suficiente stock disponible para este producto.');
-                    return;
-                }
+                if (cantidad > currentStock) { alert('Stock insuficiente'); return; }
                 cart[productoId] = {
                     producto_id: productData.id,
-                    codigo_barras: productData.codigo_barras, // Usamos la clave correcta
-                    precio_unitario: productData.precio,
+                    codigo_barras: productData.codigo_barras,
+                    descripcion: productData.descripcion,
+                    precio_unitario: unitPrice,
                     cantidad: cantidad,
-                    stock_actual: productData.stock
+                    stock_actual: currentStock
                 };
             }
-
             renderCart();
-            document.getElementById('search-results').innerHTML = '';
             searchInput.value = '';
-            searchInput.focus(); // Enfocar para seguir escaneando/buscando
+            searchResultsContainer.innerHTML = '';
+            searchInput.focus();
         }
 
-        function removeProductFromCart(productoId) {
-            delete cart[productoId];
-            renderCart();
-        }
+        function removeProductFromCart(id) { delete cart[id]; renderCart(); }
 
-        function updateQuantity(productoId, newQuantity) {
-            const product = cart[productoId];
-            const stock = product.stock_actual;
-
-            newQuantity = parseInt(newQuantity);
-            if (isNaN(newQuantity) || newQuantity < 1) {
-                newQuantity = 1;
-            }
-            if (newQuantity > stock) {
-                alert('La cantidad no puede exceder el stock disponible (' + stock + ').');
-                newQuantity = stock;
-            }
-
-            product.cantidad = newQuantity;
-            renderCart();
+        function updateQuantity(id, qty) {
+            qty = parseInt(qty);
+            if (qty > 0 && qty <= cart[id].stock_actual) { cart[id].cantidad = qty; renderCart(); }
+            else { renderCart(); }
         }
 
         function renderCart() {
             let total = 0;
             cartTableBody.innerHTML = '';
-            const hiddenItemsContainer = document.getElementById('hidden-cart-items');
-            hiddenItemsContainer.innerHTML = '';
+            const hiddenItems = document.getElementById('hidden-cart-items');
+            hiddenItems.innerHTML = '';
 
-            // Recorrer el carrito y renderizar la tabla y los inputs ocultos
             Object.values(cart).forEach((item, index) => {
                 const subtotal = item.cantidad * item.precio_unitario;
                 total += subtotal;
 
                 const row = cartTableBody.insertRow();
                 row.innerHTML = `
-                <td>${item.producto_id}</td>
-                <td>${item.codigo_barras}</td>
-                <td>$ ${item.precio_unitario.toFixed(2)}</td>
-                <td><input type="number" min="1" max="${item.stock_actual}" value="${item.cantidad}" class="form-control form-control-sm text-center" onchange="updateQuantity(${item.producto_id}, this.value)"></td>
-                <td>$ ${subtotal.toFixed(2)}</td>
-                <td><button type="button" class="btn btn-sm btn-danger" onclick="removeProductFromCart(${item.producto_id})"><i class="fas fa-times"></i></button></td>
-            `;
+                    <td>${item.producto_id}</td>
+                    <td>${item.codigo_barras} / ${item.descripcion}</td>
+                    <td>$ ${item.precio_unitario.toFixed(2)}</td>
+                    <td><input type="number" min="1" max="${item.stock_actual}" value="${item.cantidad}" class="form-control form-control-sm" onchange="updateQuantity(${item.producto_id}, this.value)"></td>
+                    <td>$ ${subtotal.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger" onclick="removeProductFromCart(${item.producto_id})">X</button></td>
+                `;
 
-                // Inputs ocultos para enviar al controlador
-                hiddenItemsContainer.innerHTML += `
-                <input type="hidden" name="cart_items[${index}][producto_id]" value="${item.producto_id}">
-                <input type="hidden" name="cart_items[${index}][cantidad]" value="${item.cantidad}">
-                <input type="hidden" name="cart_items[${index}][precio_unitario]" value="${item.precio_unitario}">
-            `;
+                hiddenItems.innerHTML += `
+                    <input type="hidden" name="cart_items[${index}][producto_id]" value="${item.producto_id}">
+                    <input type="hidden" name="cart_items[${index}][cantidad]" value="${item.cantidad}">
+                    <input type="hidden" name="cart_items[${index}][precio_unitario]" value="${item.precio_unitario}">
+                `;
             });
 
-            // Actualizar totales y habilitar botón
-            cartTotalDisplay.textContent = `$ ${total.toFixed(2)}`;
-            displayTotal.textContent = `$ ${total.toFixed(2)}`;
-            inputTotal.value = total.toFixed(2);
-
-            // Habilitar/Deshabilitar el botón de procesar
-            if (total > 0) {
-                btnProcesar.disabled = false;
-            } else {
-                btnProcesar.disabled = true;
-            }
+            const totalFormatted = total.toFixed(2);
+            cartTotalDisplay.textContent = `$ ${totalFormatted}`;
+            displayTotal.textContent = `$ ${totalFormatted}`;
+            inputTotal.value = totalFormatted;
 
             checkCredit();
         }
 
-        // Validación de Crédito: Requiere cliente si el método es Crédito
+        // --- LÓGICA DE REGLAS DE NEGOCIO ---
         function checkCredit() {
-            const metodoPago = selectMetodoPago.options[selectMetodoPago.selectedIndex];
-
             if (Object.keys(cart).length === 0) {
                 btnProcesar.disabled = true;
-                creditWarning.classList.add('d-none');
                 return;
             }
 
-            if (!metodoPago) {
+            const clienteId = inputClienteId.value;
+            // Comparación flexible (==) por si viene como string "13" vs número 13
+            const esPublicoGeneral = (clienteId == ID_CLIENTE_PUBLICO);
+
+            // REGLA: Si es Público General (13), FORZAR Efectivo y BLOQUEAR selector
+            if (esPublicoGeneral) {
+                if (selectMetodoPago.value != ID_METODO_EFECTIVO) {
+                    selectMetodoPago.value = ID_METODO_EFECTIVO;
+                }
+                selectMetodoPago.disabled = true;
+            } else {
+                selectMetodoPago.disabled = false;
+            }
+
+            const metodoPago = selectMetodoPago.options[selectMetodoPago.selectedIndex];
+            if (!metodoPago || selectMetodoPago.value === "") {
                 btnProcesar.disabled = true;
-                creditWarning.classList.add('d-none');
                 return;
             }
 
             const metodoName = metodoPago.getAttribute('data-name');
-            const clienteId = inputClienteId.value;
 
-            if (metodoName === 'Crédito' && !clienteId) {
+            if (metodoName === 'Crédito' && (!clienteId || esPublicoGeneral)) {
                 creditWarning.classList.remove('d-none');
                 btnProcesar.disabled = true;
             } else {
@@ -308,11 +282,17 @@
             }
         }
 
-        // Iniciar con el cliente por defecto (Público General)
-        document.addEventListener('DOMContentLoaded', () => {
-            inputClienteId.value = document.getElementById('cliente_id').value;
-            btnProcesar.disabled = true;
+        // Habilitar select antes de enviar para que vaya el dato en el POST
+        document.getElementById('checkout-form').addEventListener('submit', function() {
+            selectMetodoPago.disabled = false;
         });
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar con ID 13
+            inputClienteId.value = ID_CLIENTE_PUBLICO;
+            selectMetodoPago.value = ID_METODO_EFECTIVO;
+            checkCredit();
+            if (searchInput) searchInput.focus();
+        });
     </script>
 @endsection
