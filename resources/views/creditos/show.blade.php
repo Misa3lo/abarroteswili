@@ -59,48 +59,44 @@
         </div>
 
         {{-- Columna 2: Formulario de Abono --}}
-        <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <i class="fas fa-money-check-alt me-2"></i> Registrar Abono
-                </div>
-                <div class="card-body">
-                    @if($credito->adeudo > 0)
-                        <form action="{{ route('creditos.storeAbono', $credito->id) }}" method="POST">
-                            @csrf
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">Registrar Abono</div>
+            <div class="card-body">
 
-                            <div class="mb-3">
-                                <label for="monto_abono" class="form-label fw-bold">Monto a Abonar</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" min="0.01"
-                                           max="{{ number_format($credito->adeudo, 2, '.', '') }}"
-                                           class="form-control @error('monto_abono') is-invalid @enderror"
-                                           id="monto_abono" name="monto_abono"
-                                           value="{{ old('monto_abono', number_format($credito->adeudo, 2, '.', '')) }}" required autofocus>
-                                    @error('monto_abono')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <small class="form-text text-muted">Máximo: ${{ number_format($credito->adeudo, 2) }}</small>
-                            </div>
+                {{-- Mensaje de éxito/error --}}
+                @if(session('success'))
+                    <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
+                @if(session('error'))
+                    <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-success py-2 fw-bold">
-                                    <i class="fas fa-check"></i> Registrar Pago
-                                </button>
-                            </div>
-                        </form>
-                    @else
-                        {{-- Muestra que el crédito está liquidado --}}
-                        <div class="alert alert-secondary text-center">Este crédito ya fue liquidado.</div>
-                    @endif
-                </div>
-            </div>
-            <div class="d-grid mt-3">
-                <a href="{{ route('creditos.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left me-2"></i> Volver a Créditos
-                </a>
+                @if ($credito->estado !== 'Pagado')
+                    <form action="{{ route('creditos.storeAbono', $credito) }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="abono" class="form-label">Monto del Abono</label>
+                            <input type="number"
+                                   class="form-control @error('abono') is-invalid @enderror"
+                                   id="abono"
+                                   name="abono"
+                                   min="0.01"
+                                   step="0.01"
+                                   placeholder="Ej: 50.00"
+                                   required>
+                            @error('abono')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-money-bill-wave me-1"></i> Confirmar Abono
+                        </button>
+                    </form>
+                @else
+                    <div class="alert alert-info text-center">
+                        Este crédito ya ha sido **Pagado** en su totalidad.
+                    </div>
+                @endif
             </div>
         </div>
     </div>

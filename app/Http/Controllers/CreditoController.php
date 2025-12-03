@@ -48,38 +48,52 @@ class CreditoController extends Controller
     public function storeAbono(Request $request, Credito $credito)
     {
         $request->validate([
-            'monto_abono' => 'required|numeric|min:0.01',
+            'abono' => 'required|numeric|min:0.01',
         ]);
 
-        $montoAbono = (float) $request->monto_abono;
-        $saldoPendiente = (float) $credito->adeudo;
+        $montoAbono = (float)$request->abono;
 
-        if ($montoAbono > $saldoPendiente) {
-            return back()->with('error', 'El monto del abono ($' . number_format($montoAbono, 2) . ') no puede ser mayor al saldo pendiente de $' . number_format($saldoPendiente, 2));
+        // 1. Validar que el crédito esté pendiente
+        if ($credito->adeudo <= 0) { // <--- USAR 'adeudo'
+            return back()->with('error', 'El crédito ya se encuentra liquidado. No se puede registrar un abono.');
+        }
+
+        // Validación de seguridad: El abono no puede ser mayor que el saldo pendiente
+        // USAR 'adeudo'
+        if ($montoAbono > $credito->adeudo) {
+            return back()->with('error', 'Error: El monto del abono ($' . number_format($montoAbono, 2) . ') es mayor que el saldo pendiente ($' . number_format($credito->adeudo, 2) . ').');
         }
 
         try {
             DB::beginTransaction();
 
-            // En la tabla 'abonos' SÍ existe la columna 'fecha_hora', por eso esto es correcto.
+            // 2. CREACIÓN DEL ABONO
             Abono::create([
                 'credito_id' => $credito->id,
                 'abono' => $montoAbono,
-                'fecha_hora' => now(),
+                'fecha_hora' => now(), // Correcto, usa la hora actual
             ]);
 
-            $credito->decrement('adeudo', $montoAbono);
+            // 3. ACTUALIZACIÓN DEL SALDO DEL CRÉDITO
+            $nuevoSaldo = $credito->adeudo - $montoAbono;
+
+            // Actualizar el saldo (Credito.php necesita 'estado' en $fillable)
+            $credito->update([
+                'adeudo' => $nuevoSaldo,
+                'estado' => ($nuevoSaldo <= 0.01) ? 'Pagado' : 'Pendiente', // Correcto
+            ]);
 
             DB::commit();
 
-            $credito->refresh();
-
-            return redirect()->route('creditos.show', $credito->id)
-                ->with('success', 'Abono de $' . number_format($montoAbono, 2) . ' registrado con éxito. Nuevo saldo pendiente: $' . number_format($credito->adeudo, 2));
+            return back()->with('success', 'Abono de $' . number_format($montoAbono, 2) . ' registrado exitosamente. Saldo pendiente actualizado.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error al procesar el abono: ' . $e->getMessage());
+
+            // 🚨 CAMBIO DE DIAGNÓSTICO: Detener el script y mostrar el error real de la DB
+            // Esto revelará si es un problema de Foreign Key, columna NULL, etc.
+            dd("Fallo de Transacción: " . $e->getMessage());
         }
     }
+
 }

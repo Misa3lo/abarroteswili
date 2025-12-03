@@ -12,10 +12,13 @@ class Abono extends Model
     // Asumiendo que la tabla se llama 'abonos'
     protected $table = 'abonos';
 
+    // 🚨 CORRECCIÓN CRÍTICA: Deshabilitar los timestamps de Laravel
+    public $timestamps = false;
+
     protected $fillable = [
         'credito_id',
         'abono',
-        'fecha_hora', // La columna que estás usando para la fecha del pago
+        'fecha_hora', // Columna real de fecha/hora de tu DB
     ];
 
     // Indica que 'fecha_hora' y los timestamps de Laravel deben ser objetos de fecha

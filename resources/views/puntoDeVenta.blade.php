@@ -6,8 +6,14 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white"><i class="fas fa-shopping-cart me-2"></i> Nueva Venta</div>
-                <div class="card-body">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div><i class="fas fa-shopping-cart me-2"></i> Nueva Venta</div>
+
+                    {{-- BOTÓN AGREGADO PARA VER EL HISTORIAL DE TICKETS --}}
+                    <a href="{{ route('tickets.index') }}" class="btn btn-sm btn-light" title="Ver Historial de Tickets">
+                        <i class="fas fa-history me-1"></i> Historial
+                    </a>
+                </div>                <div class="card-body">
 
                     @if(session('success'))
                         <div class="alert alert-success">{{ session('success') }}</div>
@@ -19,18 +25,38 @@
                     <div class="mb-4 p-3 border rounded bg-light">
                         <h6 class="text-primary"><i class="fas fa-user-tag me-1"></i> Cliente (Para Crédito)</h6>
 
-                        <select class="form-select" id="cliente_id" name="cliente_id">
-                            <option value="13" selected>Público General</option>
+                        <div class="mb-4 p-3 border rounded bg-light">
+                            <h6 class="text-primary"><i class="fas fa-user-tag me-1"></i> Cliente (Para Crédito)</h6>
 
-                            @foreach($clientes as $cliente)
-                                {{-- Ocultamos el ID 13 de la lista generada para no duplicarlo --}}
-                                @if ($cliente->id != 13)
-                                    <option value="{{ $cliente->id }}" data-limite="{{ $cliente->limite_credito }}">
-                                        {{ $cliente->persona->nombre }} {{ $cliente->persona->apaterno }} (Límite: ${{ number_format($cliente->limite_credito, 2) }})
-                                    </option>
-                                @endif
-                            @endforeach
-                        </select>
+                            <select class="form-select" id="cliente_id" name="cliente_id">
+                                {{-- Opción de Público General. Asumimos ID=13, pero la dejamos seleccionada por defecto --}}
+                                <option value="13" selected data-saldo="0" data-limite="0">Público General (ID: 13)</option>
+
+                                @foreach($clientes as $cliente)
+                                    {{-- Omitimos el cliente 'Público General' de la lista generada --}}
+                                    @if ($cliente->id != 13)
+                                        @php
+                                            // Las variables se inyectaron desde TicketController@create
+                                            $saldo = $cliente->creditos_sum_adeudo ?? 0;
+                                            $limite = $cliente->limite_credito ?? 0;
+                                        @endphp
+
+                                        <option
+                                            value="{{ $cliente->id }}"
+                                            data-limite="{{ number_format($limite, 2, '.', '') }}"
+                                            data-saldo="{{ number_format($saldo, 2, '.', '') }}"
+                                        >
+                                            {{ $cliente->persona->nombre }} {{ $cliente->persona->apaterno }}
+                                            @if ($saldo > 0)
+                                                (SALDO PENDIENTE: ${{ number_format($saldo, 2) }})
+                                            @else
+                                                (Sin Deuda)
+                                            @endif
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <h6 class="text-primary"><i class="fas fa-search me-1"></i> Agregar Productos</h6>
@@ -134,6 +160,7 @@
 
         // Eventos
         document.getElementById('cliente_id').addEventListener('change', (e) => {
+            // CORRECCIÓN: Asegurar que el ID del cliente se actualiza y se envía en el formulario
             inputClienteId.value = e.target.value;
             checkCredit();
         });
@@ -156,7 +183,8 @@
                 filtered.forEach(p => {
                     const item = document.createElement('a');
                     item.className = 'list-group-item list-group-item-action';
-                    item.innerHTML = `<strong>${p.codigo_barras}</strong> - ${p.descripcion || 'N/A'} (Stock: ${p.existencias}) - $${parseFloat(p.precio_venta).toFixed(2)}`;
+                    // ✅ CORRECCIÓN 1: Usar p.stock y p.precio
+                    item.innerHTML = `<strong>${p.codigo_barras}</strong> - ${p.descripcion || 'N/A'} (Stock: ${p.stock}) - $${parseFloat(p.precio).toFixed(2)}`;
                     item.onclick = (e) => { e.preventDefault(); addProductToCart(p.id); };
                     searchResultsContainer.appendChild(item);
                 });
@@ -176,8 +204,9 @@
             const productData = PRODUCT_LIST.find(p => p.id === productoId);
             if (!productData) return;
 
-            const unitPrice = parseFloat(productData.precio_venta);
-            const currentStock = parseFloat(productData.existencias);
+            // ✅ CORRECCIÓN 2: Cambiar a las claves 'precio' y 'stock'
+            const unitPrice = parseFloat(productData.precio);
+            const currentStock = parseFloat(productData.stock);
 
             if (currentStock <= 0) { alert('Agotado'); return; }
 
@@ -189,7 +218,8 @@
                 cart[productoId] = {
                     producto_id: productData.id,
                     codigo_barras: productData.codigo_barras,
-                    descripcion: productData.descripcion,
+                    // Usar la descripción, o el código de barras si la descripción es nula
+                    descripcion: productData.descripcion || productData.codigo_barras,
                     precio_unitario: unitPrice,
                     cantidad: cantidad,
                     stock_actual: currentStock
@@ -221,13 +251,13 @@
 
                 const row = cartTableBody.insertRow();
                 row.innerHTML = `
-                    <td>${item.producto_id}</td>
-                    <td>${item.codigo_barras} / ${item.descripcion}</td>
-                    <td>$ ${item.precio_unitario.toFixed(2)}</td>
-                    <td><input type="number" min="1" max="${item.stock_actual}" value="${item.cantidad}" class="form-control form-control-sm" onchange="updateQuantity(${item.producto_id}, this.value)"></td>
-                    <td>$ ${subtotal.toFixed(2)}</td>
-                    <td><button type="button" class="btn btn-sm btn-danger" onclick="removeProductFromCart(${item.producto_id})">X</button></td>
-                `;
+            <td>${item.producto_id}</td>
+            <td>${item.codigo_barras} / ${item.descripcion}</td>
+            <td>$ ${item.precio_unitario.toFixed(2)}</td>
+            <td><input type="number" min="1" max="${item.stock_actual}" value="${item.cantidad}" class="form-control form-control-sm" onchange="updateQuantity(${item.producto_id}, this.value)"></td>
+            <td>$ ${subtotal.toFixed(2)}</td>
+            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeProductFromCart(${item.producto_id})">X</button></td>
+        `;
 
                 hiddenItems.innerHTML += `
                     <input type="hidden" name="cart_items[${index}][producto_id]" value="${item.producto_id}">

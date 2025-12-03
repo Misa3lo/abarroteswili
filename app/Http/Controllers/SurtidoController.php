@@ -46,14 +46,13 @@ class SurtidoController extends Controller
         // 2. Ejecutar el Procedimiento Almacenado
         try {
             $producto = Producto::findOrFail($request->producto_id);
-            // OBTENEMOS EL VALOR DEL NUEVO CAMPO
-            $codigo_barras = $producto->codigo_barras;
+            $codigo_barras = $producto->codigo_barras; // <-- Aquí se obtiene el código de barras
 
             // Los parámetros que el SP requiere son: (p_codigo_barra, pcantidad, pprecio_entrada)
             DB::statement(
-                "CALL registrar_surtido(?, ?, ?)",
+                "CALL registrar_surtido(?, ?, ?)", // <-- Aquí se llama al SP
                 [
-                    $codigo_barras, // ¡CAMBIO! Pasamos el código de barras
+                    $codigo_barras, // ¡Se pasa el código de barras!
                     (double) $request->cantidad,
                     (float) $request->precio_entrada
                 ]

@@ -17,60 +17,62 @@ use App\Http\Controllers\UsuarioController;
 
 // --- RUTAS DE AUTENTICACIÓN (Públicas) ---
 
-// Redirección de la raíz al login
 Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-// Formulario de login
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-// Procesamiento del login
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-// Logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 
-// --- GRUPO DE RUTAS PROTEGIDAS (Requieren Iniciar Sesión) ---
-// Todo lo que está dentro de este grupo requerirá una sesión activa.
+// --- GRUPO 1: RUTAS PERMITIDAS PARA EMPLEADO Y ADMINISTRADOR (auth) ---
 Route::middleware(['auth'])->group(function () {
 
-    // 1. Dashboard (Punto de entrada principal)
+    // 1. Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // 2. Punto de Venta (Generalmente accesible para todos)
+    // 2. Punto de Venta (PDV)
     Route::get('/punto-de-venta', [TicketController::class, 'create'])->name('puntoDeVenta');
-    Route::resource('tickets', TicketController::class)->only(['index', 'store', 'show', 'destroy']);
+    // La acción de procesar la venta (store)
+    Route::post('/punto-de-venta', [TicketController::class, 'store'])->name('tickets.store');
 
-
-    // 3. Rutas CRUD generales
-    Route::resource('abonos', AbonoController::class)->except(['show']);
-    Route::resource('clientes', ClienteController::class);
-    Route::resource('creditos', CreditoController::class)->except(['create', 'store']);
-    Route::resource('departamentos', DepartamentoController::class);
-    Route::resource('metodos-pago', MetodoPagoController::class);
-    Route::resource('personas', PersonaController::class);
-    Route::resource('productos', ProductoController::class);
-    Route::resource('tickets', TicketController::class)->only(['index', 'show']);
-    Route::resource('surtidos', SurtidoController::class)->except(['update', 'destroy']);
-
-    // Búsqueda de Personas
-    Route::get('personas/search', [PersonaController::class, 'search'])->name('personas.search');
-
-
-    // 4. Rutas de CRÉDITOS
-    Route::prefix('creditos')->group(function () {
-        Route::get('/', [CreditoController::class, 'index'])->name('creditos.index');
-        Route::get('/{credito}', [CreditoController::class, 'show'])->name('creditos.show');
-        Route::post('/{credito}/abono', [CreditoController::class, 'storeAbono'])->name('creditos.storeAbono');
-    });
-
-
-    // 5. Rutas de Administrador (Doble protección: 'auth' + 'can:administrador')
-    Route::middleware(['can:administrador'])->group(function () {
-        Route::resource('usuarios', UsuarioController::class);
-        Route::view('/gestion-clientes', 'gestionDeClientes')->name('gestionDeClientes');
-        Route::view('/gestion-inventario', 'gestionInventario')->name('gestionInventario');
-        Route::view('/reporte-ventas', 'ventas.index')->name('ventas.index');
-    });
+    // 3. Historial de Tickets (index y show)
+    Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
+    // Nota: Eliminamos la línea 'Route::resource('tickets', TicketController::class)->only(['index', 'store', 'show', 'destroy']);'
+    // para evitar duplicidad y tener control explícito sobre cada acción.
 
 }); // CIERRE DEL GRUPO PROTEGIDO CON 'auth'
+
+
+// --- GRUPO 2: RUTAS RESTRINGIDAS (SOLO ADMINISTRADOR) ---
+// Estas rutas son solo para el rol 'administrador'
+Route::middleware(['auth', 'can:administrador'])->group(function () {
+
+    // CRUD de Usuarios y Vistas de Gestión
+    Route::resource('usuarios', UsuarioController::class);
+    Route::view('/gestion-clientes', 'gestionDeClientes')->name('gestionDeClientes');
+    Route::view('/gestion-inventario', 'gestionInventario')->name('gestionInventario');
+    Route::view('/reporte-ventas', 'ventas.index')->name('ventas.index');
+
+    // Rutas CRUD de Datos Sensibles:
+    Route::resource('productos', ProductoController::class);
+    Route::resource('departamentos', DepartamentoController::class);
+    Route::resource('clientes', ClienteController::class);
+    Route::resource('metodos-pago', MetodoPagoController::class);
+    Route::resource('personas', PersonaController::class);
+    Route::resource('abonos', AbonoController::class)->except(['show']);
+    Route::resource('surtidos', SurtidoController::class)->except(['update', 'destroy']);
+
+    // Búsqueda de Personas (Relacionado al CRUD de Clientes)
+    Route::get('personas/search', [PersonaController::class, 'search'])->name('personas.search');
+
+    // CRÉDITOS (Toda la gestión, incluyendo la vista de abonos)
+    Route::resource('creditos', CreditoController::class)->except(['create', 'store']);
+    Route::post('/creditos/{credito}/abono', [CreditoController::class, 'storeAbono'])->name('creditos.storeAbono');
+
+    // Anulación de Tickets (es una acción sensible)
+    Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
+
+}); // CIERRE DEL GRUPO PROTEGIDO CON 'can:administrador'

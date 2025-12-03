@@ -6,7 +6,6 @@ use App\Models\Producto;
 use App\Models\Cliente;
 use App\Models\MetodoPago;
 use App\Models\Ticket;
-use App\Models\Venta;
 use App\Models\Credito;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,30 +19,35 @@ class TicketController extends Controller
     public function create()
     {
         // 1. Obtener datos para la vista
-        // CORRECCIÓN 1: Asegurar que se seleccionan todas las columnas que el JS necesita.
-        $productos = Producto::select('id', 'codigo_barras', 'descripcion', 'precio_venta', 'existencias')->orderBy('codigo_barras')->get();
 
-        // Cargar clientes con datos personales
-        $clientes = Cliente::with('persona')->get();
+        // 🚨 CAMBIO CRÍTICO: Obtener clientes con el saldo total pendiente
+        // 1. Cargamos la relación 'persona'.
+        // 2. Usamos withSum para calcular la suma de 'adeudo' de los créditos pendientes.
+        $clientes = Cliente::with('persona')
+            ->withSum([
+                'creditos' => function ($query) {
+                    $query->where('adeudo', '>', 0); // Solo créditos con saldo pendiente
+                }
+            ], 'adeudo') // Suma la columna 'adeudo'
+            ->get();
+
+        // El resultado de withSum se guarda en una columna llamada 'creditos_sum_adeudo'
+
+        $productos = Producto::select('id', 'codigo_barras', 'descripcion', 'precio_venta', 'existencias')->orderBy('codigo_barras')->get();
         $metodosPago = MetodoPago::all();
 
-        // Preparar la lista de productos en formato JSON para JavaScript
+// Mapeo de la colección para JavaScript (¡Asegúrate de que el mapping exista!)
         $productosJson = $productos->map(function ($producto) {
             return [
                 'id' => $producto->id,
                 'codigo_barras' => $producto->codigo_barras,
-
-                // CORRECCIÓN 2: Mapear exactamente a las claves que el JS utiliza.
-                'descripcion' => $producto->descripcion,
-                'precio_venta' => $producto->precio_venta,
-                'existencias' => $producto->existencias,
+                'descripcion' => $producto->descripcion, // ¡CLAVE NECESARIA!
+                'precio' => $producto->precio_venta,      // Usamos 'precio'
+                'stock' => $producto->existencias,        // Usamos 'stock'
             ];
         });
 
-        $productosJson = json_encode($productosJson);
-
-        // NOTA: Eliminamos 'productos' del compact para no enviar datos duplicados
-        return view('puntoDeVenta', compact('clientes', 'metodosPago', 'productosJson'));
+        return view('puntoDeVenta', compact('productos', 'clientes', 'metodosPago', 'productosJson'));
     }
 
     /**
@@ -53,40 +57,76 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
-        // ACTUALIZADO: ID del cliente Público General existente
-        $ID_CLIENTE_PUBLICO = 13;
+        // 1. VALIDACIÓN
+        $request->validate([
+            'total' => 'required|numeric',
+            'metodo_pago_id' => 'required|exists:metodo_pago,id',
+            // Validamos que llegue el array de items del carrito
+            'cart_items' => 'required|array|min:1',
+        ]);
 
-        // ... (Validación) ...
+        // AJUSTE CRÍTICO: Definir los IDs importantes para la lógica de negocio.
+        $ID_METODO_CREDITO = 2;
+        $ID_CLIENTE_PUBLICO = 13; // Usamos 13 que es tu ID real de público general
 
-        $metodoPago = MetodoPago::find($request->metodo_pago_id);
-
-        // Validación de seguridad backend
-        if (($request->cliente_id == $ID_CLIENTE_PUBLICO) && ($metodoPago->descripcion !== 'Efectivo')) {
-            return redirect()->route('puntoDeVenta')->withInput()->with('error', 'Error de Seguridad: La venta al Público General debe ser en Efectivo.');
-        }
-
-        // ... (Resto del código igual que antes) ...
+        DB::beginTransaction();
 
         try {
-            DB::beginTransaction();
+            // CORRECCIÓN USUARIO: Usamos Auth::user()->id para obtener el número, no el nombre
+            $usuarioId = Auth::user()->id;
 
+            // 1. CREACIÓN DEL TICKET
             $ticket = Ticket::create([
                 'folio' => uniqid('T'),
-                'usuario_id' => Auth::user()->id,
-                // Si viene vacío o nulo, usa el 13
-                'cliente_id' => $request->cliente_id ?: $ID_CLIENTE_PUBLICO,
+                'usuario_id' => $usuarioId, // ✅ Corregido: ID numérico
+                'cliente_id' => $request->cliente_id ?? $ID_CLIENTE_PUBLICO,
                 'metodo_pago_id' => $request->metodo_pago_id,
-                'total' => $request->total,
+                'total' => $request->total, // Usamos 'total' que viene del input hidden 'input_total'
             ]);
 
-            // ... (El resto de la lógica de Crédito y Ventas es correcta) ...
+            // 2. REGISTRO DE VENTA Y DECREMENTO DE STOCK
+            // CORRECCIÓN ARRAY: Usamos 'cart_items' que es como se llama en el HTML/JS
+            foreach ($request->cart_items as $item) {
+                // Verificar que el producto exista antes de usarlo
+                $producto = Producto::find($item['producto_id']);
+
+                if ($producto) {
+                    \App\Models\Venta::create([
+                        'ticket_id' => $ticket->id,
+                        'producto_id' => $item['producto_id'],
+                        'cantidad' => $item['cantidad'],
+                        'precio' => $item['precio_unitario'], // En tu DB la columna es 'precio', no 'precio_unitario'
+                    ]);
+
+                    $producto->decrement('existencias', $item['cantidad']);
+                }
+            }
+
+            // 3. REGISTRO DE CRÉDITO (LÓGICA NUEVA)
+            if ((int)$request->metodo_pago_id === $ID_METODO_CREDITO && (int)$ticket->cliente_id !== $ID_CLIENTE_PUBLICO) {
+                if ($request->total > 0) {
+                    Credito::create([
+                        'cliente_id' => $ticket->cliente_id,
+                        'ticket_id' => $ticket->id,
+                        'monto_original' => $ticket->total,
+                        'adeudo' => $ticket->total,
+                    ]);
+                }
+            }
 
             DB::commit();
-            return redirect()->route('tickets.show', $ticket->id)->with('success', 'Venta (Ticket #' . $ticket->id . ') registrada y stock actualizado. 🎉');
+
+            // 🚨 REDIRECCIÓN AL TICKET RECIÉN CREADO
+            return redirect()->route('tickets.show', $ticket->id)
+                ->with('success', 'Venta procesada con éxito. Ticket #' . $ticket->id);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('puntoDeVenta')->withInput()->with('error', 'Error al procesar la venta: ' . $e->getMessage());
+
+            \Log::error("Error al procesar la venta: " . $e->getMessage());
+
+            return redirect()->route('puntoDeVenta')
+                ->with('error', 'Error al finalizar la venta: ' . $e->getMessage());
         }
     }
 
@@ -95,7 +135,7 @@ class TicketController extends Controller
     {
         // Cargamos las relaciones necesarias
         $ticket->load('ventas.producto', 'metodoPago', 'cliente.persona');
-        return view('tickets.show', compact('ticket'));
+        return view('tickets.show', compact('ticket')); // <-- ¡Esta es la vista a revisar!
     }
 
     // Los métodos index y destroy puedes implementarlos después

@@ -49,40 +49,56 @@
                         @endif
                     </div>
 
-                    <h5><i class="fas fa-boxes me-1"></i> Productos Vendidos</h5>
-                    <table class="table table-bordered table-sm mt-3">
-                        <thead class="bg-light">
-                        <tr>
-                            <th>Cód. Barras</th>
-                            <th>Producto</th>
-                            <th class="text-center">Cantidad</th>
-                            <th class="text-end">P. Unitario</th>
-                            <th class="text-end">Subtotal</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($ticket->ventas as $venta)
+                    <h5 class="mt-4"><i class="fas fa-boxes me-1"></i> Productos Vendidos</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead class="table-dark">
                             <tr>
-                                <td>{{ $venta->producto->codigo_barras }}</td>
-                                <td>{{ $venta->producto->descripcion }}</td>
-                                <td class="text-center">{{ $venta->cantidad }}</td>
-                                <td class="text-end">$ {{ number_format($venta->precio_unitario, 2) }}</td>
-                                <td class="text-end">$ {{ number_format($venta->cantidad * $venta->precio_unitario, 2) }}</td>
+                                <th>Cód. Barras</th>
+                                <th>Descripción</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-end">P. Unitario</th> {{-- Nueva Columna --}}
+                                <th class="text-end">Subtotal</th>    {{-- Nueva Columna --}}
                             </tr>
-                        @endforeach
-                        </tbody>
-                        <tfoot>
-                        <tr>
-                            <td colspan="4" class="text-end fw-bold">TOTAL VENTA:</td>
-                            <td class="text-end fw-bold">$ {{ number_format($ticket->total, 2) }}</td>
-                        </tr>
-                        </tfoot>
-                    </table>
+                            </thead>
+                            <tbody>
+                            @foreach($ticket->ventas as $venta)
+                                <tr>
+                                    <td>{{ $venta->producto->codigo_barras ?? 'N/A' }}</td>
+                                    <td>{{ $venta->producto->descripcion ?? 'Producto sin descripción' }}</td>
+                                    <td class="text-center">{{ $venta->cantidad }}</td>
+
+                                    {{-- Precio Unitario (Guardado en la tabla ventas como 'precio') --}}
+                                    <td class="text-end">
+                                        $ {{ number_format($venta->precio, 2) }}
+                                    </td>
+
+                                    {{-- Cálculo del Subtotal (Cantidad * Precio) --}}
+                                    <td class="text-end fw-bold">
+                                        $ {{ number_format($venta->cantidad * $venta->precio, 2) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold fs-5">TOTAL PAGADO:</td>
+                                <td class="text-end fw-bold fs-5 text-success">
+                                    $ {{ number_format($ticket->total, 2) }}
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
 
                     <div class="text-end mt-4">
                         <a href="{{ route('tickets.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Volver al Listado
                         </a>
+                        {{-- Botón opcional para imprimir --}}
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="fas fa-print"></i> Imprimir Ticket
+                        </button>
                     </div>
                 </div>
             </div>

@@ -7,15 +7,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Credito extends Model
 {
-    // Asegúrate de que tienes esta línea si usas la columna 'deleted_at'
     use SoftDeletes;
 
-    // Las columnas que pueden ser asignadas masivamente (incluyendo las corregidas)
+    // Las columnas que pueden ser asignadas masivamente (incluyendo 'estado')
     protected $fillable = [
         'cliente_id',
-        'ticket_id', // Importante tras la migración
+        'ticket_id',
         'monto_original',
         'adeudo', // La columna que usamos para el saldo pendiente
+        'estado', // 🚨 ¡ESTA ES LA CORRECCIÓN FALTANTE!
+    ];
+
+    // ✅ CORRECCIÓN 2: El array $casts es el que define el tipo de dato
+    protected $casts = [
+        // Aseguramos que los campos monetarios se traten como decimales con 2 dígitos
+        'monto_original' => 'decimal:2',
+        'adeudo' => 'decimal:2',
     ];
 
     // Las columnas que deben ser tratadas como objetos Carbon
@@ -44,6 +51,6 @@ class Credito extends Model
      */
     public function abonos()
     {
-        return $this->hasMany(Abono::class);
+        return $this->hasMany(Abono::class, 'credito_id');
     }
 }
