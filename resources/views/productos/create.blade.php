@@ -3,6 +3,9 @@
 @section('title', 'Registrar Producto')
 
 @section('content')
+
+
+
     <div class="card shadow-sm">
         <div class="card-header bg-success text-white">
             <i class="fas fa-plus me-2"></i> Registrar Nuevo Producto
@@ -30,11 +33,14 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="departamento_id" class="form-label">Departamento <span class="text-danger">*</span></label>
-                        <select class="form-select" id="departamento_id" name="departamento_id" required>
-                            <option value="">-- Seleccione un Departamento --</option>
-                            @foreach($departamentos as $depto)
-                                <option value="{{ $depto->id }}" {{ old('departamento_id') == $depto->id ? 'selected' : '' }}>
-                                    {{ $depto->codigo_barras }}
+                        <label for="departamento_id" class="form-label">Departamento</label>
+                        <select class="form-control" name="departamento_id" id="departamento_id" required>
+                            <option value="">Seleccione un departamento</option>
+
+                            @foreach($departamentos as $departamento)
+                                {{-- ✅ CORRECCIÓN: Usar la columna 'nombre' para mostrar el texto --}}
+                                <option value="{{ $departamento->id }}">
+                                    {{ $departamento->nombre }}
                                 </option>
                             @endforeach
                         </select>

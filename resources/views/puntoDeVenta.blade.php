@@ -3,6 +3,35 @@
 @section('title', 'Punto de Venta')
 
 @section('content')
+
+    <style>
+        /* 🚨 CORRECCIÓN CRÍTICA: Forzar el color de fuente de los elementos de la lista a negro */
+
+        /* 1. Estilos para los ítems de la lista de sugerencias */
+        /* Aplicamos a clases comunes de autocompletado y a .list-group-item */
+        .autocomplete-suggestions div,
+        .ui-menu-item div,
+        .list-group-item,
+        .autocomplete-item {
+            color: #000000 !important; /* Forzar texto NEGRO */
+            background-color: #ffffff !important; /* Asegurar fondo blanco */
+        }
+
+        /* 2. Estilos para el contenedor de la lista */
+        .autocomplete-suggestions, .ui-autocomplete, .list-group {
+            background-color: #ffffff !important;
+            border: 1px solid #ccc !important;
+        }
+
+        /* 3. Estilo para el ítem activo/seleccionado (al pasar el mouse), el cual debe ser blanco sobre azul */
+        .autocomplete-suggestions .selected,
+        .ui-menu-item.ui-state-active div,
+        .list-group-item:focus, .list-group-item:hover {
+            background-color: #0d6efd !important; /* Azul de Bootstrap */
+            color: #ffffff !important; /* Texto BLANCO */
+        }
+    </style>
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
